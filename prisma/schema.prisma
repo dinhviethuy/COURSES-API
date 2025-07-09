@@ -1,0 +1,245 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+}
+
+enum HTTPMethod {
+  GET
+  POST
+  PUT
+  DELETE
+  PATCH
+  OPTIONS
+  HEAD
+}
+
+enum OrderStatus {
+  CANCEL
+  SUCCESS
+  FAILED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  role          Role      @relation(fields: [roleId], references: [id])
+  roleId        Int
+  email         String    @unique
+  fullName      String
+  password      String
+  status        UserStatus @default(ACTIVE)
+
+  createdBy     User?     @relation("UserCreatedUsers", fields: [createdById], references: [id])
+  createdById   Int?
+  updatedBy     User?     @relation("UserUpdatedUsers", fields: [updatedById], references: [id])
+  updatedById   Int?
+  deletedBy     User?     @relation("UserDeletedUsers", fields: [deletedById], references: [id])
+  deletedById   Int?
+
+  createdUsers  User[]    @relation("UserCreatedUsers")
+  updatedUsers  User[]    @relation("UserUpdatedUsers")
+  deletedUsers  User[]    @relation("UserDeletedUsers")
+
+  sessionTokens SessionToken[]
+  orders        Order[]     @relation("OrderUser")
+  courses       Course[]   @relation("CourseCreators")
+  updatedCourses Course[]  @relation("CourseUpdatedUsers")
+  deletedCourses Course[]  @relation("CourseDeletedUsers")
+  chapters      Chapter[]  @relation("ChapterCreators")
+  lessons       Lesson[]   @relation("LessonCreators")
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime
+  deletedAt     DateTime?
+}
+
+model Role {
+  id            Int           @id @default(autoincrement())
+  name          String        @unique
+  description   String
+  isActive      Boolean       @default(true)
+
+  users         User[]
+
+  permissions   Permission[]  @relation("RolePermissions")
+
+  createdById   Int?
+  updatedById   Int?
+  deletedById   Int?
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime
+  deletedAt     DateTime?
+}
+
+model Permission {
+  id            Int           @id @default(autoincrement())
+  name          String
+  description   String
+  path          String
+  method        HTTPMethod
+
+  roles         Role[]        @relation("RolePermissions")
+
+  createdById   Int?
+  updatedById   Int?
+  deletedById   Int?
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime
+  deletedAt     DateTime?
+}
+
+model SessionToken {
+  token       String    @id
+  user        User      @relation(fields: [userId], references: [id])
+  userId      Int
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+
+  @@index([expiresAt])
+}
+
+model Course {
+  id            Int       @id @default(autoincrement())
+  title         String
+  description   String
+  slug          String
+  price         Int       @default(0)
+  isDraft       Boolean   @default(true)
+
+  createdBy     User?     @relation("CourseCreators", fields: [createdById], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  createdById   Int?
+  updatedBy     User?     @relation("CourseUpdatedUsers", fields: [updatedById], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  updatedById   Int?
+  deletedBy     User?     @relation("CourseDeletedUsers", fields: [deletedById], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  deletedById   Int?
+
+  chapters      Chapter[]
+  orders        OrderCourses[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime
+  deletedAt     DateTime?
+}
+
+model Chapter {
+  id            Int       @id @default(autoincrement())
+  title         String
+  description   String
+  order         Int
+  isDraft       Boolean   @default(true)
+  course        Course    @relation(fields: [courseId], references: [id])
+  courseId      Int
+
+  createdBy     User?     @relation("ChapterCreators", fields: [createdById], references: [id])
+  createdById   Int?
+  updatedById   Int?
+  deletedById   Int?
+
+  lessons       Lesson[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime
+  deletedAt     DateTime?
+}
+
+model Lesson {
+  id            Int       @id @default(autoincrement())
+  name          String
+  description   String
+  order         Int
+  videoUrl      String?
+  duration      Int       // seconds
+  isDraft       Boolean   @default(true)
+  chapter       Chapter   @relation(fields: [chapterId], references: [id])
+  chapterId     Int
+
+  createdBy     User?     @relation("LessonCreators", fields: [createdById], references: [id])
+  createdById   Int?
+  updatedById   Int?
+  deletedById   Int?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime
+  deletedAt     DateTime?
+}
+
+model Order {
+  id            Int         @id @default(autoincrement())
+  user          User        @relation("OrderUser", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  userId        Int
+  status        OrderStatus
+  payment       Payment     @relation("OrderPayment", fields: [paymentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  paymentId     Int
+
+  courses       OrderCourses[]
+
+  createdById   Int?
+  updatedById   Int?
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime
+  deletedAt     DateTime?
+}
+
+model OrderCourses {
+  id        Int     @id @default(autoincrement())
+  order     Order   @relation(fields: [orderId], references: [id])
+  orderId   Int
+  course    Course  @relation(fields: [courseId], references: [id])
+  courseId  Int
+
+  @@unique([orderId, courseId])
+}
+
+model Payment {
+  id            Int               @id @default(autoincrement())
+  status        PaymentStatus
+  orders        Order[]           @relation("OrderPayment")
+
+  transactions  PaymentTransaction[]
+
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime
+}
+
+model PaymentTransaction {
+  id                  Int       @id @default(autoincrement())
+  payment             Payment?  @relation(fields: [paymentId], references: [id])
+  paymentId           Int?
+  gateway             String
+  transactionDate     DateTime  @default(now())
+  accountNumber       String
+  subAccount          String?
+  amountIn            Int       @default(0)
+  amountOut           Int       @default(0)
+  accumulated         Int       @default(0)
+  code                String?
+  transactionContent  String?
+  referenceNumber     String?
+  body                String?
+
+  createdAt           DateTime  @default(now())
+}

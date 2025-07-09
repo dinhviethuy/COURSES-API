@@ -12,3 +12,10 @@ export const ConditionGuard = {
 } as const
 
 export type ConditionGuardType = (typeof ConditionGuard)[keyof typeof ConditionGuard]
+
+export const OTPType = {
+  REGISTER: 'REGISTER',
+  FORGOT_PASSWORD: 'FORGOT_PASSWORD'
+} as const
+
+export type OTPTypeType = (typeof OTPType)[keyof typeof OTPType]

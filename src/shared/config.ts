@@ -18,7 +18,11 @@ const configSchema = z.object({
   PORT: z.coerce.number().default(3000),
   SESSION_TOKEN_SECRET: z.string(),
   SESSION_TOKEN_EXPIRES_IN: z.string(),
-  PAYMENT_API_KEY: z.string()
+  PAYMENT_API_KEY: z.string(),
+  ADMIN_NAME: z.string(),
+  ADMIN_EMAIL: z.string().email(),
+  ADMIN_PASSWORD: z.string(),
+  OTP_EXPIRES_IN: z.string()
 })
 
 const configServer = configSchema.safeParse(process.env)

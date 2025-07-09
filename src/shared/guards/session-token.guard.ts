@@ -10,7 +10,10 @@ export class SessionTokenGuard implements CanActivate {
     const request = context.switchToHttp().getRequest()
     const sessionToken = this.extractTokenFromHeader(request)
     const payload = await this.validateSessionToken(sessionToken)
-    request[USER_KEY] = payload
+    request[USER_KEY] = {
+      ...payload,
+      sessionToken
+    }
     return true
   }
 

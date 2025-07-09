@@ -4,11 +4,13 @@ import { JwtModule } from '@nestjs/jwt'
 import { AuthenticationGuard } from './guards/authentication.guard'
 import { PaymentAPIKeyGuard } from './guards/payment-api-key.guard'
 import { SessionTokenGuard } from './guards/session-token.guard'
-import { HasingService } from './services/hashing.service'
+import { SharedRoleRepository } from './repositories/shared-role.repo'
+import { HashingService } from './services/hashing.service'
 import { PrismaService } from './services/prisma.service'
 import { TokenService } from './services/token.service'
+import { SharedUserRepository } from './repositories/shared-user.model'
 
-const sharedServices = [PrismaService, HasingService, TokenService]
+const sharedServices = [PrismaService, HashingService, TokenService, SharedRoleRepository, SharedUserRepository]
 
 @Global()
 @Module({

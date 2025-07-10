@@ -8,6 +8,7 @@
   "scripts": {
     "build": "nest build",
     "initial-seed-data": "ts-node initialScript/index.ts",
+    "create-permissions": "ts-node initialScript/create-permissions.ts",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",

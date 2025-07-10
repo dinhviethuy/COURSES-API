@@ -46,18 +46,18 @@ enum PaymentStatus {
 
 model User {
   id            Int       @id @default(autoincrement())
-  role          Role      @relation(fields: [roleId], references: [id])
+  role          Role      @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   roleId        Int
   email         String    @unique
   fullName      String
   password      String
   status        UserStatus @default(ACTIVE)
 
-  createdBy     User?     @relation("UserCreatedUsers", fields: [createdById], references: [id])
+  createdBy     User?     @relation("UserCreatedUsers", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   createdById   Int?
-  updatedBy     User?     @relation("UserUpdatedUsers", fields: [updatedById], references: [id])
+  updatedBy     User?     @relation("UserUpdatedUsers", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   updatedById   Int?
-  deletedBy     User?     @relation("UserDeletedUsers", fields: [deletedById], references: [id])
+  deletedBy     User?     @relation("UserDeletedUsers", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   deletedById   Int?
 
   createdUsers  User[]    @relation("UserCreatedUsers")

@@ -5,11 +5,11 @@ import { AuthenticationGuard } from './guards/authentication.guard'
 import { PaymentAPIKeyGuard } from './guards/payment-api-key.guard'
 import { SessionTokenGuard } from './guards/session-token.guard'
 import { SharedRoleRepository } from './repositories/shared-role.repo'
-import { SharedUserRepository } from './repositories/shared-user.model'
+import { SharedUserRepository } from './repositories/shared-user.repo'
+import { EmailService } from './services/email.service'
 import { HashingService } from './services/hashing.service'
 import { PrismaService } from './services/prisma.service'
 import { TokenService } from './services/token.service'
-import { EmailService } from './services/email.service'
 
 const sharedServices = [
   PrismaService,

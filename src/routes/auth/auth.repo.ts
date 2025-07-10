@@ -3,10 +3,10 @@ import { addMilliseconds } from 'date-fns'
 import ms from 'ms'
 import { envConfig } from 'src/shared/config'
 import { OTPTypeType } from 'src/shared/constants/auth.constant'
-import { RoleName } from 'src/shared/constants/role.contant'
-import { UserStatus } from 'src/shared/constants/user.contant'
+import { RoleName } from 'src/shared/constants/role.constant'
+import { UserStatus } from 'src/shared/constants/user.constant'
 import { SharedRoleRepository } from 'src/shared/repositories/shared-role.repo'
-import { SharedUserRepository } from 'src/shared/repositories/shared-user.model'
+import { SharedUserRepository } from 'src/shared/repositories/shared-user.repo'
 import { HashingService } from 'src/shared/services/hashing.service'
 import { PrismaService } from 'src/shared/services/prisma.service'
 import { TokenService } from 'src/shared/services/token.service'
@@ -65,7 +65,7 @@ export class AuthRepo {
 
   async login(body: LoginBodyType): Promise<LoginResType> {
     const { email, password } = body
-    const user = await this.sharedUserRepo.findUniqueWithRole(email)
+    const user = await this.sharedUserRepo.findUniqueIncludeRolePermissions({ email })
     if (!user) {
       throw new NotFoundException('Email không tồn tại')
     }

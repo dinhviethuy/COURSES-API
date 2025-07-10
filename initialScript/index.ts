@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common'
 import { envConfig } from 'src/shared/config'
-import { RoleName } from 'src/shared/constants/role.contant'
-import { UserStatus } from 'src/shared/constants/user.contant'
+import { RoleName } from 'src/shared/constants/role.constant'
+import { UserStatus } from 'src/shared/constants/user.constant'
 import { HashingService } from 'src/shared/services/hashing.service'
 import { PrismaService } from 'src/shared/services/prisma.service'
 

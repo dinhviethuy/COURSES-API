@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common'
 import { OTPType, OTPTypeType } from 'src/shared/constants/auth.constant'
 import { generateOTP, isUniqueConstraintPrismaError } from 'src/shared/helpers'
-import { SharedUserRepository } from 'src/shared/repositories/shared-user.model'
+import { SharedUserRepository } from 'src/shared/repositories/shared-user.repo'
 import { EmailService } from 'src/shared/services/email.service'
 import { ForgotPasswordBodyType, LoginBodyType, RegisterBodyType, SendOTPBodyType } from './auth.model'
 import { AuthRepo } from './auth.repo'
@@ -30,7 +30,7 @@ export class AuthService {
   }
 
   async sendOTP(body: SendOTPBodyType) {
-    const user = await this.sharedUserRepo.findUnique(body.email)
+    const user = await this.sharedUserRepo.findUnique({ email: body.email })
     if (user && body.type === OTPType.REGISTER) {
       throw new ConflictException('Email đã tồn tại')
     }

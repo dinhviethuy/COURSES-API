@@ -7,6 +7,7 @@ import {
   GetCoursesQuerySchema,
   GetManageCoursesQuerySchema,
   ListCoursesResSchema,
+  ReorderChaptersAndLessonsBodySchema,
   UpdateCourseBodySchema,
   UpdateCourseResSchema
 } from './course.model'
@@ -28,3 +29,5 @@ export class ListCoursesResDTO extends createZodDto(ListCoursesResSchema) {}
 export class GetCoursesQueryDTO extends createZodDto(GetCoursesQuerySchema) {}
 
 export class GetManageCoursesQueryDTO extends createZodDto(GetManageCoursesQuerySchema) {}
+
+export class ReorderChaptersAndLessonsBodyDTO extends createZodDto(ReorderChaptersAndLessonsBodySchema) {}

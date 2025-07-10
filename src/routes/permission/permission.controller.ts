@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common'
 import { ZodSerializerDto } from 'nestjs-zod'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { MessageRes } from 'src/shared/decorators/message.decorator'
@@ -43,7 +43,7 @@ export class PermissionController {
     })
   }
 
-  @Patch(':permissionId')
+  @Put(':permissionId')
   @MessageRes('Cập nhật quyền thành công')
   @ZodSerializerDto(GetPermissionDetailResDTO)
   update(

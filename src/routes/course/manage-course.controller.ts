@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common'
+import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common'
 import { ZodSerializerDto } from 'nestjs-zod'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { MessageRes } from 'src/shared/decorators/message.decorator'
@@ -10,6 +10,7 @@ import {
   GetCourseParamsDTO,
   GetManageCoursesQueryDTO,
   ListCoursesResDTO,
+  ReorderChaptersAndLessonsBodyDTO,
   UpdateCourseBodyDTO,
   UpdateCourseResDTO
 } from './course.dto'
@@ -48,7 +49,7 @@ export class ManageCourseController {
     }
   }
 
-  @Patch(':courseId')
+  @Put(':courseId')
   @MessageRes('Cập nhật khóa học thành công')
   @ZodSerializerDto(UpdateCourseResDTO)
   async updateCourse(
@@ -56,9 +57,31 @@ export class ManageCourseController {
     @Body() body: UpdateCourseBodyDTO,
     @ActiveUser('userId') userId: number
   ) {
-    return this.manageCourseService.updateCourse({
+    try {
+      const course = await this.manageCourseService.updateCourse({
+        courseId: param.courseId,
+        data: body,
+        updatedById: userId
+      })
+      return course
+    } catch (error) {
+      if (isUniqueConstraintPrismaError(error)) {
+        throw new BadRequestException('Slug đã tồn tại')
+      }
+      throw error
+    }
+  }
+
+  @Patch(':courseId/reorder-full')
+  @MessageRes('Sắp xếp lại khóa học thành công')
+  async reorderChaptersAndLessons(
+    @Param() param: GetCourseParamsDTO,
+    @Body() body: ReorderChaptersAndLessonsBodyDTO,
+    @ActiveUser('userId') userId: number
+  ) {
+    return this.manageCourseService.reorderChaptersAndLessons({
       courseId: param.courseId,
-      data: body,
+      chapters: body.chapters,
       updatedById: userId
     })
   }

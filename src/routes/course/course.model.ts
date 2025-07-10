@@ -1,30 +1,15 @@
 import { OrderBy, SortBy } from 'src/shared/constants/orther.constant'
+import { ChapterSchema } from 'src/shared/models/shared-chapter.model'
 import { z } from 'zod'
 
 export const CourseSchema = z.object({
   id: z.number().int().positive(),
-  title: z.string().min(1),
-  description: z.string().min(1),
-  slug: z.string().min(1),
+  title: z.string(),
+  description: z.string().default(''),
+  slug: z.string(),
   price: z.number().min(0),
   isDraft: z.boolean().default(true),
-  discount: z.number().min(0).default(0),
-
-  createdAt: z.date(),
-  updatedAt: z.date(),
-  deletedAt: z.date().nullable(),
-  createdById: z.number().nullable(),
-  updatedById: z.number().nullable(),
-  deletedById: z.number().nullable()
-})
-
-export const ChapterSchema = z.object({
-  id: z.number().int().positive(),
-  title: z.string().min(1),
-  description: z.string().min(1),
-  order: z.number().int().positive(),
-  isDraft: z.boolean().default(true),
-  courseId: z.number().int().positive(),
+  discount: z.number().min(0).max(100).default(0),
 
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -36,12 +21,12 @@ export const ChapterSchema = z.object({
 
 export const LessonSchema = z.object({
   id: z.number().int().positive(),
-  title: z.string().min(1),
-  description: z.string().min(1),
-  order: z.number().int().positive(),
+  title: z.string(),
+  description: z.string().default(''),
+  order: z.number().min(0).default(0),
   isDraft: z.boolean().default(true),
   chapterId: z.number().int().positive(),
-  duration: z.number().int().positive(),
+  duration: z.number().min(0).default(0),
   videoUrl: z.string().nullable(),
 
   createdAt: z.date(),
@@ -95,7 +80,15 @@ export const GetManageCoursesQuerySchema = GetCoursesQuerySchema.extend({
   createdById: z.coerce.number().int().positive().optional()
 })
 
-export const GetCourseDetailResSchema = CourseSchema.extend({
+export const GetCourseDetailResSchema = CourseSchema.pick({
+  id: true,
+  title: true,
+  description: true,
+  slug: true,
+  price: true,
+  isDraft: true,
+  discount: true
+}).extend({
   chapters: z.array(
     ChapterSchema.pick({
       id: true,
@@ -138,8 +131,20 @@ export const GetCourseParamsSchema = z.object({
   courseId: z.coerce.number().int().positive()
 })
 
+export const ReorderChaptersAndLessonsBodySchema = z
+  .object({
+    chapters: z.array(
+      ChapterSchema.pick({
+        id: true,
+        order: true
+      }).extend({
+        lessons: z.array(LessonSchema.pick({ id: true, order: true }))
+      })
+    )
+  })
+  .strict()
+
 export type CourseType = z.infer<typeof CourseSchema>
-export type ChapterType = z.infer<typeof ChapterSchema>
 export type LessonType = z.infer<typeof LessonSchema>
 export type GetCourseDetailResType = z.infer<typeof GetCourseDetailResSchema>
 export type CreateCourseBodyType = z.infer<typeof CreateCourseBodySchema>
@@ -150,3 +155,4 @@ export type GetCourseParamsType = z.infer<typeof GetCourseParamsSchema>
 export type ListCoursesResType = z.infer<typeof ListCoursesResSchema>
 export type GetCoursesQueryType = z.infer<typeof GetCoursesQuerySchema>
 export type GetManageCoursesQueryType = z.infer<typeof GetManageCoursesQuerySchema>
+export type ReorderChaptersAndLessonsBodyType = z.infer<typeof ReorderChaptersAndLessonsBodySchema>

@@ -13,6 +13,7 @@ import { HttpExceptionFilter } from './shared/filters/http-exception.filter'
 import { CustomZodSerializerInterceptor } from './shared/interceptors/custom-zod-serializer.interceptor'
 import CustomZodValidationPipe from './shared/pipes/custom-zod-validation.pipe'
 import { SharedModule } from './shared/shared.module'
+import { ChapterModule } from './routes/chapter/chapter.module'
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { SharedModule } from './shared/shared.module'
     RoleModule,
     UserModule,
     MediaModule,
-    CourseModule
+    CourseModule,
+    ChapterModule
   ],
   controllers: [AppController],
   providers: [

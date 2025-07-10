@@ -173,9 +173,6 @@ model Chapter {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
-
-  @@index([courseId, order])
-  @@unique([courseId, order])
 }
 
 model Lesson {
@@ -197,9 +194,6 @@ model Lesson {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
-
-  @@index([chapterId, order])
-  @@unique([chapterId, order])
 }
 
 model Order {
@@ -226,8 +220,6 @@ model OrderCourses {
   orderId   Int
   course    Course  @relation(fields: [courseId], references: [id])
   courseId  Int
-
-  @@unique([orderId, courseId])
 }
 
 model Payment {

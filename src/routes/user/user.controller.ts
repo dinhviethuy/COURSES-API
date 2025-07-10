@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common'
 import { ZodSerializerDto } from 'nestjs-zod'
 import { ActiveRolePermissions } from 'src/shared/decorators/active-role-permissions.decorator'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
@@ -50,7 +50,7 @@ export class UserController {
     })
   }
 
-  @Patch(':userId')
+  @Put(':userId')
   @MessageRes('Cập nhật người dùng thành công')
   @ZodSerializerDto(UpdateProfileResDTO)
   update(

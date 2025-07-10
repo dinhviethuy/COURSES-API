@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
-import { SortBy } from 'src/shared/constants/orther.constant'
+import { OrderBy, SortBy } from 'src/shared/constants/orther.constant'
 import { PrismaService } from 'src/shared/services/prisma.service'
 import {
   CreateCourseBodyType,
@@ -168,8 +168,14 @@ export class CourseRepo {
             lessons: {
               where: {
                 deletedAt: null
+              },
+              orderBy: {
+                order: OrderBy.Asc
               }
             }
+          },
+          orderBy: {
+            order: OrderBy.Asc
           }
         }
       }
@@ -241,5 +247,89 @@ export class CourseRepo {
         }
       })
     }
+  }
+
+  async reorderChaptersAndLessons({
+    courseId,
+    chapters,
+    updatedById
+  }: {
+    courseId: number
+    chapters: { id: number; order: number; lessons: { id: number; order: number }[] }[]
+    updatedById: number
+  }) {
+    const updates: Prisma.PrismaPromise<any>[] = []
+    // lấy danh sách chương và bài học từ db
+    const chaptersInDb = await this.prismaService.chapter.findMany({
+      where: {
+        courseId,
+        deletedAt: null
+      },
+      select: {
+        id: true,
+        order: true,
+        lessons: {
+          select: {
+            id: true,
+            order: true
+          },
+          where: {
+            deletedAt: null
+          }
+        }
+      }
+    })
+    // lấy danh sách id của chương và bài học
+    const chapterIds = chaptersInDb.map((chapter) => chapter.id)
+    const lessonIds = chaptersInDb.flatMap((chapter) => chapter.lessons.map((lesson) => lesson.id))
+
+    // kiểm tra xem chương có tồn tại không
+    const chaptersNotExists = chapters.filter((chapter) => !chapterIds.includes(chapter.id))
+    if (chaptersNotExists.length > 0) {
+      throw new BadRequestException('Chương không tồn tại')
+    }
+
+    // kiểm tra xem bài học có tồn tại không
+    const lessonsNotExists = chapters.flatMap((chapter) =>
+      chapter.lessons.filter((lesson) => !lessonIds.includes(lesson.id))
+    )
+
+    // kiểm tra xem bài học có tồn tại không
+    if (lessonsNotExists.length > 0) {
+      throw new BadRequestException('Bài học không tồn tại')
+    }
+
+    // cập nhật thứ tự chương
+    for (const chapter of chapters) {
+      updates.push(
+        this.prismaService.chapter.update({
+          where: {
+            id: chapter.id
+          },
+          data: {
+            order: chapter.order,
+            updatedById
+          }
+        })
+      )
+
+      // cập nhật thứ tự bài học trong chương
+      for (const lesson of chapter.lessons) {
+        updates.push(
+          this.prismaService.lesson.update({
+            where: {
+              id: lesson.id
+            },
+            data: {
+              chapterId: chapter.id,
+              order: lesson.order,
+              updatedById
+            }
+          })
+        )
+      }
+    }
+
+    await this.prismaService.$transaction(updates)
   }
 }

@@ -34,4 +34,16 @@ export class ManageCourseService {
     await this.courseRepo.deleteCourse({ courseId, deletedById })
     return {}
   }
+
+  async reorderChaptersAndLessons({
+    courseId,
+    chapters,
+    updatedById
+  }: {
+    courseId: number
+    chapters: { id: number; order: number; lessons: { id: number; order: number }[] }[]
+    updatedById: number
+  }) {
+    return this.courseRepo.reorderChaptersAndLessons({ courseId, chapters, updatedById })
+  }
 }

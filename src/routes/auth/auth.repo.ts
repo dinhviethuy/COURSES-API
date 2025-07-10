@@ -4,13 +4,14 @@ import ms from 'ms'
 import { envConfig } from 'src/shared/config'
 import { OTPTypeType } from 'src/shared/constants/auth.constant'
 import { RoleName } from 'src/shared/constants/role.contant'
+import { UserStatus } from 'src/shared/constants/user.contant'
 import { SharedRoleRepository } from 'src/shared/repositories/shared-role.repo'
 import { SharedUserRepository } from 'src/shared/repositories/shared-user.model'
 import { HashingService } from 'src/shared/services/hashing.service'
 import { PrismaService } from 'src/shared/services/prisma.service'
 import { TokenService } from 'src/shared/services/token.service'
 import { SessionTokenPayloadCreate } from 'src/shared/types/jwt.type'
-import { LoginBodyType, LoginResType, RegisterBodyType, RegisterResType } from './auth.model'
+import { ForgotPasswordBodyType, LoginBodyType, LoginResType, RegisterBodyType, RegisterResType } from './auth.model'
 
 @Injectable()
 export class AuthRepo {
@@ -32,6 +33,15 @@ export class AuthRepo {
       }
     })
   }
+
+  deleteOTP(email: string, otpType: OTPTypeType) {
+    return this.prismaService.verificationCode.delete({
+      where: {
+        email_type: { email, type: otpType }
+      }
+    })
+  }
+
   async createOTP({ email, otp, otpType }: { email: string; otpType: OTPTypeType; otp: string }) {
     await this.prismaService.verificationCode.upsert({
       where: {
@@ -104,9 +114,66 @@ export class AuthRepo {
           token: sessionToken
         }
       })
-      return { message: 'Đăng xuất thành công' }
+      return {}
     } catch (error) {
       throw new BadRequestException('Session token không hợp lệ')
+    }
+  }
+
+  async changePassword(body: Omit<ForgotPasswordBodyType, 'confirmNewPassword' | 'otp'>) {
+    const { email, newPassword } = body
+    const user = await this.prismaService.user.findFirst({
+      where: {
+        email,
+        status: UserStatus.ACTIVE
+      }
+    })
+    if (!user) {
+      throw new NotFoundException('Email không tồn tại')
+    }
+    const hashedNewPassword = await this.hashingService.hash(newPassword)
+    return this.prismaService.user.update({
+      where: {
+        id: user.id,
+        status: UserStatus.ACTIVE
+      },
+      data: {
+        password: hashedNewPassword
+      }
+    })
+  }
+
+  async sessionToken(sessionToken: string) {
+    const sessionTokenInDb = await this.prismaService.sessionToken.findUnique({
+      where: {
+        token: sessionToken
+      },
+      include: {
+        user: {
+          include: {
+            role: true
+          }
+        }
+      }
+    })
+    if (!sessionTokenInDb) {
+      throw new NotFoundException('Session token không tồn tại')
+    }
+    if (sessionTokenInDb.expiresAt < new Date()) {
+      throw new BadRequestException('Session token đã hết hạn')
+    }
+    const newSessionToken = await this.createSessionToken({
+      userId: sessionTokenInDb.userId,
+      roleName: sessionTokenInDb.user.role.name,
+      roleId: sessionTokenInDb.user.role.id
+    })
+    await this.prismaService.sessionToken.delete({
+      where: {
+        token: sessionToken
+      }
+    })
+    return {
+      sessionToken: newSessionToken
     }
   }
 

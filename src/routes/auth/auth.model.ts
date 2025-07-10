@@ -1,18 +1,6 @@
 import { OTPType } from 'src/shared/constants/auth.constant'
-import { UserStatus } from 'src/shared/constants/user.contant'
+import { UserSchema } from 'src/shared/models/shared-user.model'
 import { z } from 'zod'
-
-export const UserSchema = z.object({
-  id: z.number().int().positive(),
-  email: z.string().email(),
-  password: z.string().min(6),
-  fullName: z.string(),
-  roleId: z.number().int().positive(),
-  status: z.enum([UserStatus.ACTIVE, UserStatus.BLOCKED]).default(UserStatus.ACTIVE),
-  createdAt: z.string().datetime().nullable(),
-  updatedAt: z.string().datetime().nullable(),
-  deletedAt: z.string().datetime().nullable()
-})
 
 export const LoginBodySchema = UserSchema.pick({
   email: true,
@@ -41,13 +29,30 @@ export const RegisterBodySchema = UserSchema.pick({
 
 export const RegisterResSchema = LoginResSchema
 
+export const SessionTokenResSchema = LoginResSchema
+
 export const SendOTPBodySchema = z.object({
   email: z.string().email(),
   type: z.enum([OTPType.REGISTER, OTPType.FORGOT_PASSWORD])
 })
-export type UserType = z.infer<typeof UserSchema>
+
+export const ForgotPasswordBodySchema = z
+  .object({
+    email: z.string().email(),
+    newPassword: z.string().min(6),
+    confirmNewPassword: z.string().min(6),
+    otp: z.string().min(6).max(6)
+  })
+  .superRefine((data, ctx) => {
+    if (data.newPassword !== data.confirmNewPassword) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'New password and confirm new password do not match' })
+    }
+  })
+
 export type LoginBodyType = z.infer<typeof LoginBodySchema>
 export type LoginResType = z.infer<typeof LoginResSchema>
 export type RegisterBodyType = z.infer<typeof RegisterBodySchema>
 export type RegisterResType = z.infer<typeof RegisterResSchema>
 export type SendOTPBodyType = z.infer<typeof SendOTPBodySchema>
+export type ForgotPasswordBodyType = z.infer<typeof ForgotPasswordBodySchema>
+export type SessionTokenResType = z.infer<typeof SessionTokenResSchema>

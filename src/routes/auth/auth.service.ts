@@ -2,17 +2,19 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { OTPType, OTPTypeType } from 'src/shared/constants/auth.constant'
 import { generateOTP, isUniqueConstraintPrismaError } from 'src/shared/helpers'
 import { SharedUserRepository } from 'src/shared/repositories/shared-user.model'
-import { LoginBodyType, RegisterBodyType, SendOTPBodyType } from './auth.model'
+import { EmailService } from 'src/shared/services/email.service'
+import { ForgotPasswordBodyType, LoginBodyType, RegisterBodyType, SendOTPBodyType } from './auth.model'
 import { AuthRepo } from './auth.repo'
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly authRepo: AuthRepo,
-    private readonly sharedUserRepo: SharedUserRepository
+    private readonly sharedUserRepo: SharedUserRepository,
+    private readonly emailService: EmailService
   ) {}
 
-  private async validateOTP(otp: string, email: string, otpType: OTPTypeType) {
+  private async validateOTP({ email, otp, otpType }: { otp: string; email: string; otpType: OTPTypeType }) {
     const verifyOTP = await this.authRepo.findVerifyOTP(email, otpType)
     if (!verifyOTP) {
       throw new BadRequestException('OTP không hợp lệ')
@@ -23,6 +25,7 @@ export class AuthService {
     if (verifyOTP.expiresAt < new Date()) {
       throw new BadRequestException('OTP đã hết hạn')
     }
+    await this.authRepo.deleteOTP(email, otpType)
     return true
   }
 
@@ -40,14 +43,17 @@ export class AuthService {
       otp: code,
       otpType: body.type
     })
-    console.log(code)
-    return { message: 'Gửi email thành công' }
+    const { error } = await this.emailService.sendEmail({ to: body.email, otpCode: code })
+    if (error) {
+      throw new BadRequestException(error.message)
+    }
+    return {}
   }
 
   async register(body: RegisterBodyType) {
     const { email, password, fullName, otp } = body
     //1. Kiểm tra OTP
-    await this.validateOTP(otp, email, OTPType.REGISTER)
+    await this.validateOTP({ email, otp, otpType: OTPType.REGISTER })
     //2. Tạo user
     try {
       return this.authRepo.register({
@@ -69,5 +75,16 @@ export class AuthService {
 
   async logout(sessionToken: string) {
     return this.authRepo.logout(sessionToken)
+  }
+
+  async forgotPassword(body: ForgotPasswordBodyType) {
+    const { email, newPassword, otp } = body
+    await this.validateOTP({ email, otp, otpType: OTPType.FORGOT_PASSWORD })
+    await this.authRepo.changePassword({ email, newPassword })
+    return {}
+  }
+
+  async sessionToken(sessionToken: string) {
+    return this.authRepo.sessionToken(sessionToken)
   }
 }

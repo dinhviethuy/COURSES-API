@@ -3,6 +3,7 @@ import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { AuthModule } from './routes/auth/auth.module'
+import { CourseModule } from './routes/course/course.module'
 import { MediaModule } from './routes/media/media.module'
 import { PermissionModule } from './routes/permission/permission.module'
 import { ProfileModule } from './routes/profile/profile.module'
@@ -14,7 +15,16 @@ import CustomZodValidationPipe from './shared/pipes/custom-zod-validation.pipe'
 import { SharedModule } from './shared/shared.module'
 
 @Module({
-  imports: [SharedModule, AuthModule, ProfileModule, PermissionModule, RoleModule, UserModule, MediaModule],
+  imports: [
+    SharedModule,
+    AuthModule,
+    ProfileModule,
+    PermissionModule,
+    RoleModule,
+    UserModule,
+    MediaModule,
+    CourseModule
+  ],
   controllers: [AppController],
   providers: [
     AppService,

@@ -76,12 +76,18 @@ export class MediaController {
   @Get('static/images/:filename')
   @IsPublic()
   getStaticFile(@Param('filename') filename: string, @Res() res: Response) {
-    const file = path.resolve(`./uploads/images/${filename}`)
+    const safeFilename = path.basename(filename)
+    const file = path.resolve(`./uploads/images/${safeFilename}`)
+    if (!fs.existsSync(file)) {
+      const notFound = new NotFoundException('Image not found')
+      return res.status(notFound.getStatus()).json(notFound)
+    }
     return res.sendFile(file)
   }
 
   @Get('static/videos/:filename')
   getStaticVideoFile(@Param('filename') filename: string, @Res() res: Response, @Headers() headers) {
+    // thiếu logic kiểm tra có quyền xem video không, nếu không có quyền thì trả về 403
     const safeFilename = path.basename(filename)
     const videoPath = path.resolve(`./uploads/videos/${safeFilename}`)
     if (!fs.existsSync(videoPath)) {
@@ -102,7 +108,7 @@ export class MediaController {
       const readStreamfile = createReadStream(videoPath, {
         start,
         end,
-        highWaterMark: 128 * 1024 // 256KB
+        highWaterMark: 128 * 1024 // 128KB
       })
 
       const head = {

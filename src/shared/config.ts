@@ -24,7 +24,8 @@ const configSchema = z.object({
   ADMIN_PASSWORD: z.string(),
   OTP_EXPIRES_IN: z.string(),
   RESEND_API_KEY: z.string(),
-  DOMAIN: z.string()
+  DOMAIN: z.string(),
+  URL_ENDPOINT: z.string()
 })
 
 const configServer = configSchema.safeParse(process.env)

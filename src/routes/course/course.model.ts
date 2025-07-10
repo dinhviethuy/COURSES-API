@@ -10,6 +10,8 @@ export const CourseSchema = z.object({
   price: z.number().min(0),
   isDraft: z.boolean().default(true),
   discount: z.number().min(0).max(100).default(0),
+  image: z.string(),
+  video: z.string().optional(),
 
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -87,7 +89,9 @@ export const GetCourseDetailResSchema = CourseSchema.pick({
   slug: true,
   price: true,
   isDraft: true,
-  discount: true
+  discount: true,
+  image: true,
+  video: true
 }).extend({
   chapters: z.array(
     ChapterSchema.pick({
@@ -118,7 +122,9 @@ export const CreateCourseBodySchema = CourseSchema.pick({
   slug: true,
   price: true,
   isDraft: true,
-  discount: true
+  discount: true,
+  image: true,
+  video: true
 }).strict()
 
 export const CreateCourseResSchema = CourseSchema

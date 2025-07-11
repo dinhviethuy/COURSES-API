@@ -5,8 +5,18 @@ import { PrismaService } from 'src/shared/services/prisma.service'
 
 const prisma = new PrismaService()
 
-const TeacherModule = ['AUTH', 'MEDIA', 'PROFILE', 'USERS', 'COURSES', 'MANAGE-COURSES']
-const StudentModule = ['AUTH', 'MEDIA', 'PROFILE', 'COURSES']
+const TeacherModule = [
+  'AUTH',
+  'MEDIA',
+  'PROFILE',
+  'USERS',
+  'COURSES',
+  'MANAGE-COURSES',
+  'CHAPTERS',
+  'LESSONS',
+  'MANAGE-LESSONS'
+]
+const StudentModule = ['AUTH', 'MEDIA', 'PROFILE', 'COURSES', 'LESSONS']
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)

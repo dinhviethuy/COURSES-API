@@ -1,3 +1,4 @@
+import { LessonSchema } from 'src/routes/lesson/lesson.model'
 import { CourseType } from 'src/shared/constants/course.constant'
 import { OrderBy, SortBy } from 'src/shared/constants/orther.constant'
 import { ChapterSchema } from 'src/shared/models/shared-chapter.model'
@@ -14,24 +15,6 @@ export const CourseSchema = z.object({
   image: z.string(),
   video: z.string().nullable().optional(),
   courseType: z.enum([CourseType.COMBO, CourseType.SINGLE]).default(CourseType.SINGLE),
-
-  createdAt: z.date(),
-  updatedAt: z.date(),
-  deletedAt: z.date().nullable(),
-  createdById: z.number().nullable(),
-  updatedById: z.number().nullable(),
-  deletedById: z.number().nullable()
-})
-
-export const LessonSchema = z.object({
-  id: z.number().int().positive(),
-  title: z.string(),
-  description: z.string().default(''),
-  order: z.number().min(0).default(0),
-  isDraft: z.boolean().default(true),
-  chapterId: z.number().int().positive(),
-  duration: z.number().min(0).default(0),
-  videoUrl: z.string().nullable(),
 
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -251,7 +234,6 @@ export const ReorderChaptersAndLessonsBodySchema = z
   })
 
 export type CourseType = z.infer<typeof CourseSchema>
-export type LessonType = z.infer<typeof LessonSchema>
 export type GetCourseDetailResType = z.infer<typeof GetCourseDetailResSchema>
 export type CreateCourseBodyType = z.infer<typeof CreateCourseBodySchema>
 export type CreateCourseResType = z.infer<typeof CreateCourseResSchema>

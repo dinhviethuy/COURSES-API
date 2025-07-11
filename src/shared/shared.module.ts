@@ -4,6 +4,7 @@ import { JwtModule } from '@nestjs/jwt'
 import { AuthenticationGuard } from './guards/authentication.guard'
 import { PaymentAPIKeyGuard } from './guards/payment-api-key.guard'
 import { SessionTokenGuard } from './guards/session-token.guard'
+import { SharedCourseEnrollmentRepository } from './repositories/shared-course-enrollment.repo'
 import { SharedRoleRepository } from './repositories/shared-role.repo'
 import { SharedUserRepository } from './repositories/shared-user.repo'
 import { EmailService } from './services/email.service'
@@ -17,6 +18,7 @@ const sharedServices = [
   TokenService,
   SharedRoleRepository,
   SharedUserRepository,
+  SharedCourseEnrollmentRepository,
   EmailService
 ]
 

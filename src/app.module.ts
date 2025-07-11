@@ -3,7 +3,9 @@ import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { AuthModule } from './routes/auth/auth.module'
+import { ChapterModule } from './routes/chapter/chapter.module'
 import { CourseModule } from './routes/course/course.module'
+import { LessonModule } from './routes/lesson/lesson.module'
 import { MediaModule } from './routes/media/media.module'
 import { PermissionModule } from './routes/permission/permission.module'
 import { ProfileModule } from './routes/profile/profile.module'
@@ -13,7 +15,6 @@ import { HttpExceptionFilter } from './shared/filters/http-exception.filter'
 import { CustomZodSerializerInterceptor } from './shared/interceptors/custom-zod-serializer.interceptor'
 import CustomZodValidationPipe from './shared/pipes/custom-zod-validation.pipe'
 import { SharedModule } from './shared/shared.module'
-import { ChapterModule } from './routes/chapter/chapter.module'
 
 @Module({
   imports: [
@@ -25,7 +26,8 @@ import { ChapterModule } from './routes/chapter/chapter.module'
     UserModule,
     MediaModule,
     CourseModule,
-    ChapterModule
+    ChapterModule,
+    LessonModule
   ],
   controllers: [AppController],
   providers: [

@@ -49,6 +49,11 @@ enum CourseType {
   SINGLE
 }
 
+enum CourseEnrollmentStatus {
+  ACTIVE
+  BLOCKED
+}
+
 model User {
   id            Int       @id @default(autoincrement())
   role          Role      @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -192,7 +197,7 @@ model Chapter {
 model Lesson {
   id            Int       @id @default(autoincrement())
   title         String
-  description   String    @db.VarChar(500) @default("")
+  description   String    @default("")
   order         Int
   videoUrl      String?
   duration      Int       @default(0)
@@ -216,6 +221,13 @@ model CourseEnrollment {
   courseId      Int
   user          User      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   userId        Int
+
+  status        CourseEnrollmentStatus @default(ACTIVE)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([courseId, userId])
 }
 
 model Order {

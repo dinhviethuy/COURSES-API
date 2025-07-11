@@ -43,7 +43,7 @@ export class ChapterService {
         throw new BadRequestException('Thứ tự chương đã tồn tại trong khóa học')
       }
       if (isNotFoundPrismaError(error)) {
-        throw new NotFoundException('Chương không tồn tại')
+        throw new NotFoundException('Chương hoặc khóa học không tồn tại')
       }
       if (isForeignKeyConstraintPrismaError(error)) {
         throw new BadRequestException('Khóa học không tồn tại')
@@ -53,7 +53,14 @@ export class ChapterService {
   }
 
   async deleteChapter({ chapterId, deletedById }: { chapterId: number; deletedById: number }) {
-    await this.chapterRepo.deleteChapter({ chapterId, deletedById })
-    return {}
+    try {
+      await this.chapterRepo.deleteChapter({ chapterId, deletedById })
+      return true
+    } catch (error) {
+      if (isNotFoundPrismaError(error)) {
+        throw new NotFoundException('Chương không tồn tại')
+      }
+      throw new BadRequestException('Lỗi khi xóa chương')
+    }
   }
 }

@@ -44,6 +44,11 @@ enum PaymentStatus {
   FAILED
 }
 
+enum CourseType {
+  COMBO
+  SINGLE
+}
+
 model User {
   id            Int       @id @default(autoincrement())
   role          Role      @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -130,14 +135,19 @@ model SessionToken {
 model Course {
   id            Int       @id @default(autoincrement())
   title         String
-  description   String
+  description   String    @db.VarChar(500) @default("")
+  courseType    CourseType
   slug          String
   price         Int       @default(0)
   isDraft       Boolean   @default(true)
   discount      Int       @default(0)
   image         String    
-  video         String?    
+  video         String?
   duration      Int       @default(0)
+
+  comboChildren Course[] @relation("ComboCourses")
+  // Là khóa con thuộc nhiều combo
+  comboParents  Course[] @relation("ComboCourses")
 
   createdBy     User?     @relation("CourseCreators", fields: [createdById], references: [id], onDelete: Cascade, onUpdate: NoAction)
   createdById   Int?

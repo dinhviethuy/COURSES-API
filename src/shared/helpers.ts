@@ -19,6 +19,10 @@ export function isForeignKeyConstraintPrismaError(error: any): error is Prisma.P
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003'
 }
 
+export function isRequiredConnectPrismaError(error: any): error is Prisma.PrismaClientKnownRequestError {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2018'
+}
+
 export const generateRandomFilename = (fileName: string) => {
   const ext = path.extname(fileName)
   return `${uuidv4()}${ext}`

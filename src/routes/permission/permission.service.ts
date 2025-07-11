@@ -56,7 +56,7 @@ export class PermissionService {
   async delete({ id, deletedById }: { id: number; deletedById: number }) {
     try {
       await this.permissionRepo.delete({ id, deletedById }, true)
-      return {}
+      return true
     } catch (error) {
       if (isNotFoundPrismaError(error)) {
         throw new NotFoundException('Permission not found')

@@ -80,7 +80,7 @@ export class RoleService {
         },
         true
       )
-      return {}
+      return true
     } catch (error) {
       if (isNotFoundPrismaError(error)) {
         throw new NotFoundException('Role not found')

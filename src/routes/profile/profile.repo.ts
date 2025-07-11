@@ -1,4 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+
+import { UserStatus } from 'src/shared/constants/user.constant'
 import { HashingService } from 'src/shared/services/hashing.service'
 import { PrismaService } from 'src/shared/services/prisma.service'
 import { ChangePasswordBodyType, GetProfileResType, UpdateProfileBodyType, UpdateProfileResType } from './profile.model'
@@ -13,7 +15,9 @@ export class ProfileRepo {
   getProfile(userId: number): Promise<GetProfileResType | null> {
     return this.prismaService.user.findUnique({
       where: {
-        id: userId
+        id: userId,
+        deletedAt: null,
+        status: UserStatus.ACTIVE
       },
       select: {
         id: true,
@@ -27,7 +31,11 @@ export class ProfileRepo {
 
   updateProfile(userId: number, data: UpdateProfileBodyType): Promise<UpdateProfileResType> {
     return this.prismaService.user.update({
-      where: { id: userId },
+      where: {
+        id: userId,
+        deletedAt: null,
+        status: UserStatus.ACTIVE
+      },
       data
     })
   }
@@ -38,7 +46,11 @@ export class ProfileRepo {
   ): Promise<UpdateProfileResType> {
     const { password, newPassword } = data
     const user = await this.prismaService.user.findUnique({
-      where: { id: userId },
+      where: {
+        id: userId,
+        deletedAt: null,
+        status: UserStatus.ACTIVE
+      },
       select: {
         password: true
       }
@@ -52,7 +64,11 @@ export class ProfileRepo {
     }
     const hashedPassword = await this.hashingService.hash(newPassword)
     return this.prismaService.user.update({
-      where: { id: userId },
+      where: {
+        id: userId,
+        deletedAt: null,
+        status: UserStatus.ACTIVE
+      },
       data: { password: hashedPassword }
     })
   }

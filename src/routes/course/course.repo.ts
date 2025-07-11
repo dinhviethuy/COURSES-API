@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
+import { CourseType } from 'src/shared/constants/course.constant'
 import { OrderBy, SortBy } from 'src/shared/constants/orther.constant'
 import { PrismaService } from 'src/shared/services/prisma.service'
 import {
@@ -31,6 +32,19 @@ export class CourseRepo {
         isDraft: false
       },
       include: {
+        comboChildren: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            slug: true,
+            courseType: true
+          },
+          where: {
+            deletedAt: null,
+            isDraft: false
+          }
+        },
         chapters: {
           where: {
             deletedAt: null,
@@ -41,8 +55,14 @@ export class CourseRepo {
               where: {
                 deletedAt: null,
                 isDraft: false
+              },
+              orderBy: {
+                order: OrderBy.Asc
               }
             }
+          },
+          orderBy: {
+            order: OrderBy.Asc
           }
         }
       }
@@ -160,6 +180,18 @@ export class CourseRepo {
         deletedAt: null
       },
       include: {
+        comboChildren: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            slug: true,
+            courseType: true
+          },
+          where: {
+            deletedAt: null
+          }
+        },
         chapters: {
           where: {
             deletedAt: null
@@ -193,12 +225,64 @@ export class CourseRepo {
     data: CreateCourseBodyType
     createdById: number
   }): Promise<CreateCourseResType> {
-    const course = await this.prismaService.course.create({
-      data: {
-        ...data,
-        createdById
+    let course: CreateCourseResType
+    if (data.courseType === CourseType.COMBO) {
+      const listCourse = await this.prismaService.course.findMany({
+        where: {
+          id: {
+            in: data.courseIds
+          },
+          deletedAt: null
+        },
+        select: {
+          id: true,
+          courseType: true,
+          comboChildren: {
+            select: {
+              id: true,
+              title: true,
+              courseType: true
+            }
+          }
+        }
+      })
+
+      if (listCourse.length !== data.courseIds?.length) {
+        throw new BadRequestException('Khóa học con không tồn tại')
       }
-    })
+      const setIds = new Set<number>()
+      for (const course of listCourse) {
+        if (course.courseType === CourseType.COMBO) {
+          course.comboChildren.forEach((child) => setIds.add(child.id))
+        } else {
+          setIds.add(course.id)
+        }
+      }
+      course = await this.prismaService.course.create({
+        data: {
+          title: data.title,
+          description: data.description,
+          slug: data.slug,
+          price: data.price,
+          isDraft: data.isDraft,
+          discount: data.discount,
+          image: data.image,
+          video: data.video,
+          courseType: CourseType.COMBO,
+          createdById,
+          comboChildren: {
+            connect: Array.from(setIds).map((id) => ({ id }))
+          }
+        }
+      })
+    } else {
+      course = await this.prismaService.course.create({
+        data: {
+          ...data,
+          createdById
+        }
+      })
+    }
     return course
   }
 
@@ -211,14 +295,91 @@ export class CourseRepo {
     data: UpdateCourseBodyType
     updatedById: number
   }): Promise<UpdateCourseResType> {
-    const course = await this.prismaService.course.update({
-      where: { id: courseId },
-      data: {
-        ...data,
-        updatedById
+    const { courseIds, ...rest } = data
+    const course = await this.prismaService.course.findUnique({
+      where: {
+        id: courseId,
+        deletedAt: null
+      },
+      select: {
+        courseType: true,
+        comboChildren: {
+          select: {
+            id: true
+          },
+          where: {
+            deletedAt: null
+          }
+        }
       }
     })
-    return course
+    if (!course) {
+      throw new NotFoundException('Course not found')
+    }
+    if (course.courseType !== data.courseType) {
+      throw new BadRequestException('Không thể chuyển đổi loại khóa học')
+    }
+    if (data.courseType === CourseType.COMBO) {
+      const childrenCourseIdsInDb = course.comboChildren.map((child) => child.id)
+      const childrenCourseIdsToBody = await this.prismaService.course.findMany({
+        where: {
+          id: {
+            in: courseIds
+          },
+          deletedAt: null
+        },
+        select: {
+          id: true,
+          courseType: true,
+          comboChildren: {
+            select: {
+              id: true
+            },
+            where: {
+              deletedAt: null
+            }
+          }
+        }
+      })
+      if (childrenCourseIdsToBody.length !== courseIds?.length) {
+        throw new BadRequestException('Khóa học con không tồn tại')
+      }
+      const setIds = new Set<number>()
+      for (const course of childrenCourseIdsToBody) {
+        if (course.courseType === CourseType.COMBO) {
+          course.comboChildren.forEach((child) => setIds.add(child.id))
+        } else {
+          setIds.add(course.id)
+        }
+      }
+      const arrayIdsToDisconnect = childrenCourseIdsInDb.filter((id) => !setIds.has(id))
+      const arrayIdsToConnect = Array.from(setIds).filter((id) => !childrenCourseIdsInDb.includes(id))
+      return this.prismaService.course.update({
+        where: {
+          id: courseId,
+          deletedAt: null
+        },
+        data: {
+          ...rest,
+          comboChildren: {
+            disconnect: arrayIdsToDisconnect.map((id) => ({ id })),
+            connect: arrayIdsToConnect.map((id) => ({ id }))
+          },
+          updatedById
+        }
+      })
+    } else {
+      return this.prismaService.course.update({
+        where: {
+          id: courseId,
+          deletedAt: null
+        },
+        data: {
+          ...rest,
+          updatedById
+        }
+      })
+    }
   }
 
   async deleteCourse(

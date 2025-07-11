@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common'
-import { CourseRepo } from './course.repo'
+import { HttpException, Injectable, NotFoundException } from '@nestjs/common'
 import { GetCoursesQueryType } from './course.model'
+import { CourseRepo } from './course.repo'
 
 @Injectable()
 export class CourseService {
@@ -11,6 +11,17 @@ export class CourseService {
   }
 
   async getCourseDetail(courseId: number) {
-    return this.courseRepo.getCourseDetail(courseId)
+    try {
+      const course = await this.courseRepo.getCourseDetail(courseId)
+      if (!course) {
+        throw new NotFoundException('Không tìm thấy khóa học')
+      }
+      return course
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error
+      }
+      throw new NotFoundException('Không tìm thấy khóa học')
+    }
   }
 }

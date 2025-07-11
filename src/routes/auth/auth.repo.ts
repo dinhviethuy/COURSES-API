@@ -114,7 +114,7 @@ export class AuthRepo {
           token: sessionToken
         }
       })
-      return {}
+      return true
     } catch (error) {
       throw new BadRequestException('Session token không hợp lệ')
     }

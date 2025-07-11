@@ -181,7 +181,7 @@ export class UserService {
         id,
         deletedById
       })
-      return {}
+      return true
     } catch (error) {
       if (isNotFoundPrismaError(error)) {
         throw new NotFoundException('User not found')

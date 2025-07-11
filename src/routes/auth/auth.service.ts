@@ -47,7 +47,7 @@ export class AuthService {
     if (error) {
       throw new BadRequestException(error.message)
     }
-    return {}
+    return true
   }
 
   async register(body: RegisterBodyType) {
@@ -81,7 +81,7 @@ export class AuthService {
     const { email, newPassword, otp } = body
     await this.validateOTP({ email, otp, otpType: OTPType.FORGOT_PASSWORD })
     await this.authRepo.changePassword({ email, newPassword })
-    return {}
+    return true
   }
 
   async sessionToken(sessionToken: string) {

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { CourseEnrollmentStatus } from '../constants/course-enrollment.constant'
 import { PrismaService } from '../services/prisma.service'
 
@@ -6,14 +6,40 @@ import { PrismaService } from '../services/prisma.service'
 export class SharedCourseEnrollmentRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  getEnrollment(courseId: number, userId: number) {
-    return this.prismaService.courseEnrollment.findUnique({
+  getEnrollmentByUserId({
+    where,
+    key,
+    lessonId
+  }: {
+    where: { userId: number } | { courseId: number }
+    key?: string
+    lessonId?: number
+  }) {
+    if (key === undefined && lessonId === undefined) {
+      throw new BadRequestException('Lỗi khi kiểm tra quyền truy cập bài học')
+    }
+    return this.prismaService.courseEnrollment.findFirst({
       where: {
-        courseId_userId: {
-          userId,
-          courseId
-        },
-        status: CourseEnrollmentStatus.ACTIVE
+        ...where,
+        status: CourseEnrollmentStatus.ACTIVE,
+        course: {
+          deletedAt: null,
+          isDraft: false,
+          chapters: {
+            some: {
+              deletedAt: null,
+              isDraft: false,
+              lessons: {
+                some: {
+                  id: lessonId,
+                  deletedAt: null,
+                  isDraft: false,
+                  key
+                }
+              }
+            }
+          }
+        }
       }
     })
   }

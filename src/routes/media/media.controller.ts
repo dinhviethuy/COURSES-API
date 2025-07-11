@@ -17,12 +17,17 @@ import { Response } from 'express'
 import fs, { createReadStream, statSync } from 'fs'
 import path from 'path'
 import { envConfig } from 'src/shared/config'
+import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { IsPublic } from 'src/shared/decorators/auth.decorator'
 import { MessageRes } from 'src/shared/decorators/message.decorator'
 import { ParseFilePipeWithUnlink } from 'src/shared/pipes/parse-file-pipe-with-unlink.pipe'
+import { SharedLessonRepository } from 'src/shared/repositories/shared-lesson.repo'
+import { SessionTokenPayload } from 'src/shared/types/jwt.type'
 
 @Controller('media')
 export class MediaController {
+  constructor(private readonly sharedLessonRepository: SharedLessonRepository) {}
+
   @Post('images/upload')
   @MessageRes('Tải ảnh lên thành công')
   @UseInterceptors(FilesInterceptor('files', 2))
@@ -86,8 +91,18 @@ export class MediaController {
   }
 
   @Get('static/videos/:filename')
-  getStaticVideoFile(@Param('filename') filename: string, @Res() res: Response, @Headers() headers) {
-    // thiếu logic kiểm tra có quyền xem video không, nếu không có quyền thì trả về 403
+  async getStaticVideoFile(
+    @Param('filename') filename: string,
+    @Res() res: Response,
+    @Headers() headers,
+    @ActiveUser() user: SessionTokenPayload
+  ) {
+    await this.sharedLessonRepository.checkCanAccessLesson({
+      key: filename.split('.')[0],
+      where: { userId: user.userId },
+      roleId: user.roleId
+    })
+
     const safeFilename = path.basename(filename)
     const videoPath = path.resolve(`./uploads/videos/${safeFilename}`)
     if (!fs.existsSync(videoPath)) {

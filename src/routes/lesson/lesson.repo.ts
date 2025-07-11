@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/shared/services/prisma.service'
 import {
   CreateLessonBodyType,
@@ -14,23 +14,37 @@ export class LessonRepo {
   constructor(private readonly prismaService: PrismaService) {}
 
   async getDetailClient(lessonId: number): Promise<GetLessonDetailResType | null> {
-    const lesson = await this.prismaService.lesson.findUnique({
+    const lesson = await this.prismaService.lesson.findFirst({
       where: {
         id: lessonId,
         deletedAt: null,
-        isDraft: false
+        isDraft: false,
+        chapter: {
+          isDraft: false,
+          deletedAt: null,
+          course: {
+            deletedAt: null,
+            isDraft: false
+          }
+        }
       },
       include: {
         chapter: {
           include: {
-            course: true
+            course: {
+              select: {
+                id: true
+              }
+            }
           }
         }
       }
     })
-    if (!lesson || lesson.chapter.isDraft || lesson.chapter.course.isDraft) {
+
+    if (!lesson) {
       return null
     }
+
     return lesson
   }
 
@@ -43,7 +57,14 @@ export class LessonRepo {
     })
   }
 
-  async create(data: CreateLessonBodyType, createdById: number): Promise<CreateLessonResType> {
+  async create(data: CreateLessonBodyType & { key?: string }, createdById: number): Promise<CreateLessonResType> {
+    if (data.videoUrl) {
+      const key = data.videoUrl.split('/').pop()?.split('.')[0]
+      if (!key) {
+        throw new BadRequestException('Video URL không hợp lệ')
+      }
+      data.key = key
+    }
     const count = await this.prismaService.lesson.count({
       where: {
         chapterId: data.chapterId,
@@ -64,10 +85,17 @@ export class LessonRepo {
     updatedById,
     lessonId
   }: {
-    data: UpdateLessonBodyType
+    data: UpdateLessonBodyType & { key?: string }
     updatedById: number
     lessonId: number
   }): Promise<UpdateLessonResType> {
+    if (data.videoUrl) {
+      const key = data.videoUrl.split('/').pop()?.split('.')[0]
+      if (!key) {
+        throw new BadRequestException('Video URL không hợp lệ')
+      }
+      data.key = key
+    }
     return this.prismaService.lesson.update({
       where: {
         id: lessonId,

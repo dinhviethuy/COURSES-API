@@ -11,6 +11,7 @@ import { EmailService } from './services/email.service'
 import { HashingService } from './services/hashing.service'
 import { PrismaService } from './services/prisma.service'
 import { TokenService } from './services/token.service'
+import { SharedLessonRepository } from './repositories/shared-lesson.repo'
 
 const sharedServices = [
   PrismaService,
@@ -19,6 +20,7 @@ const sharedServices = [
   SharedRoleRepository,
   SharedUserRepository,
   SharedCourseEnrollmentRepository,
+  SharedLessonRepository,
   EmailService
 ]
 

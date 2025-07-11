@@ -101,6 +101,44 @@ export const GetCourseDetailResSchema = CourseSchema.pick({
     ChapterSchema.pick({
       id: true,
       title: true,
+      order: true
+    }).extend({
+      lessons: z.array(
+        LessonSchema.pick({
+          id: true,
+          title: true,
+          order: true
+        })
+      )
+    })
+  ),
+  comboChildren: z.array(
+    CourseSchema.pick({
+      id: true,
+      title: true,
+      description: true,
+      slug: true,
+      courseType: true
+    })
+  )
+})
+
+export const GetCourseDetailResSchemaForAdmin = CourseSchema.pick({
+  id: true,
+  title: true,
+  description: true,
+  slug: true,
+  price: true,
+  isDraft: true,
+  discount: true,
+  image: true,
+  video: true,
+  courseType: true
+}).extend({
+  chapters: z.array(
+    ChapterSchema.pick({
+      id: true,
+      title: true,
       description: true,
       order: true,
       isDraft: true
@@ -224,3 +262,4 @@ export type ListCoursesResType = z.infer<typeof ListCoursesResSchema>
 export type GetCoursesQueryType = z.infer<typeof GetCoursesQuerySchema>
 export type GetManageCoursesQueryType = z.infer<typeof GetManageCoursesQuerySchema>
 export type ReorderChaptersAndLessonsBodyType = z.infer<typeof ReorderChaptersAndLessonsBodySchema>
+export type GetCourseDetailResTypeForAdmin = z.infer<typeof GetCourseDetailResSchemaForAdmin>

@@ -6,7 +6,7 @@ import { isUniqueConstraintPrismaError } from 'src/shared/helpers'
 import {
   CreateCourseBodyDTO,
   CreateCourseResDTO,
-  GetCourseDetailResDTO,
+  GetCourseDetailResDTOForAdmin,
   GetCourseParamsDTO,
   GetManageCoursesQueryDTO,
   ListCoursesResDTO,
@@ -29,7 +29,7 @@ export class ManageCourseController {
 
   @Get(':courseId')
   @MessageRes('Lấy chi tiết khóa học thành công')
-  @ZodSerializerDto(GetCourseDetailResDTO)
+  @ZodSerializerDto(GetCourseDetailResDTOForAdmin)
   async getCourseDetail(@Param() param: GetCourseParamsDTO) {
     return this.manageCourseService.getCourseDetailForAdmin(param.courseId)
   }

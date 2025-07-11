@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
-import { CourseType } from 'src/shared/constants/course.constant'
+import { CourseType, Prisma } from '@prisma/client'
 import { OrderBy, SortBy } from 'src/shared/constants/orther.constant'
 import { PrismaService } from 'src/shared/services/prisma.service'
 import {
+  CourseType as CourseTypeModel,
   CreateCourseBodyType,
   CreateCourseResType,
   GetCourseDetailResType,
@@ -21,17 +21,25 @@ export class CourseRepo {
   /**
    * API dành cho client
    * Lấy chi tiết khóa học
-   * @param courseId
-   * @returns
    */
-  async getCourseDetail(courseId: number): Promise<GetCourseDetailResType> {
-    const course = await this.prismaService.course.findUnique({
+  async getCourseDetail(courseId: number): Promise<GetCourseDetailResType | null> {
+    return this.prismaService.course.findUnique({
       where: {
         id: courseId,
         deletedAt: null,
         isDraft: false
       },
-      include: {
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        description: true,
+        courseType: true,
+        price: true,
+        isDraft: true,
+        discount: true,
+        image: true,
+        video: true,
         comboChildren: {
           select: {
             id: true,
@@ -43,15 +51,22 @@ export class CourseRepo {
           where: {
             deletedAt: null,
             isDraft: false
+          },
+          orderBy: {
+            createdAt: OrderBy.Desc
           }
         },
         chapters: {
-          where: {
-            deletedAt: null,
-            isDraft: false
-          },
-          include: {
+          select: {
+            id: true,
+            title: true,
+            order: true,
             lessons: {
+              select: {
+                id: true,
+                title: true,
+                order: true
+              },
               where: {
                 deletedAt: null,
                 isDraft: false
@@ -61,16 +76,16 @@ export class CourseRepo {
               }
             }
           },
+          where: {
+            deletedAt: null,
+            isDraft: false
+          },
           orderBy: {
             order: OrderBy.Asc
           }
         }
       }
     })
-    if (!course) {
-      throw new NotFoundException('Course not found')
-    }
-    return course
   }
 
   private generateFilter(query: GetCoursesQueryType | GetManageCoursesQueryType, isAdmin: boolean) {
@@ -170,11 +185,9 @@ export class CourseRepo {
   /**
    * API dành cho admin
    * Lấy chi tiết khóa học
-   * @param courseId
-   * @returns
    */
-  async getDetailForAdmin(courseId: number): Promise<GetCourseDetailResType> {
-    const course = await this.prismaService.course.findUnique({
+  async getDetailForAdmin(courseId: number): Promise<GetCourseDetailResType | null> {
+    return this.prismaService.course.findUnique({
       where: {
         id: courseId,
         deletedAt: null
@@ -190,6 +203,9 @@ export class CourseRepo {
           },
           where: {
             deletedAt: null
+          },
+          orderBy: {
+            createdAt: OrderBy.Desc
           }
         },
         chapters: {
@@ -212,10 +228,6 @@ export class CourseRepo {
         }
       }
     })
-    if (!course) {
-      throw new NotFoundException('Course not found')
-    }
-    return course
   }
 
   async createCourse({
@@ -225,7 +237,6 @@ export class CourseRepo {
     data: CreateCourseBodyType
     createdById: number
   }): Promise<CreateCourseResType> {
-    let course: CreateCourseResType
     if (data.courseType === CourseType.COMBO) {
       const listCourse = await this.prismaService.course.findMany({
         where: {
@@ -258,7 +269,7 @@ export class CourseRepo {
           setIds.add(course.id)
         }
       }
-      course = await this.prismaService.course.create({
+      return this.prismaService.course.create({
         data: {
           title: data.title,
           description: data.description,
@@ -276,14 +287,13 @@ export class CourseRepo {
         }
       })
     } else {
-      course = await this.prismaService.course.create({
+      return this.prismaService.course.create({
         data: {
           ...data,
           createdById
         }
       })
     }
-    return course
   }
 
   async updateCourse({
@@ -391,13 +401,13 @@ export class CourseRepo {
       deletedById: number
     },
     isHard?: boolean
-  ): Promise<void> {
+  ): Promise<CourseTypeModel | null> {
     if (isHard) {
-      await this.prismaService.course.delete({
+      return this.prismaService.course.delete({
         where: { id: courseId }
       })
     } else {
-      await this.prismaService.course.update({
+      return this.prismaService.course.update({
         where: {
           id: courseId,
           deletedAt: null

@@ -3,6 +3,7 @@ import {
   CreateCourseBodySchema,
   CreateCourseResSchema,
   GetCourseDetailResSchema,
+  GetCourseDetailResSchemaForAdmin,
   GetCourseParamsSchema,
   GetCoursesQuerySchema,
   GetManageCoursesQuerySchema,
@@ -13,6 +14,8 @@ import {
 } from './course.model'
 
 export class GetCourseDetailResDTO extends createZodDto(GetCourseDetailResSchema) {}
+
+export class GetCourseDetailResDTOForAdmin extends createZodDto(GetCourseDetailResSchemaForAdmin) {}
 
 export class CreateCourseBodyDTO extends createZodDto(CreateCourseBodySchema) {}
 

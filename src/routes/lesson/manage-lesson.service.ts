@@ -1,5 +1,9 @@
 import { BadRequestException, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common'
-import { isForeignKeyConstraintPrismaError, isNotFoundPrismaError } from 'src/shared/helpers'
+import {
+  isForeignKeyConstraintPrismaError,
+  isNotFoundPrismaError,
+  isUniqueConstraintPrismaError
+} from 'src/shared/helpers'
 import { CreateLessonBodyType, UpdateLessonBodyType } from './lesson.model'
 import { LessonRepo } from './lesson.repo'
 
@@ -23,6 +27,9 @@ export class ManageLessonService {
       if (isForeignKeyConstraintPrismaError(error)) {
         throw new NotAcceptableException('Chapter không tồn tại')
       }
+      if (isUniqueConstraintPrismaError(error)) {
+        throw new NotAcceptableException('Bài học đã tồn tại')
+      }
       throw new BadRequestException('Lỗi khi tạo bài học')
     }
   }
@@ -37,6 +44,9 @@ export class ManageLessonService {
       }
       if (isNotFoundPrismaError(error)) {
         throw new NotFoundException('Bài học không tồn tại')
+      }
+      if (isUniqueConstraintPrismaError(error)) {
+        throw new NotAcceptableException('Bài học đã tồn tại')
       }
       throw new BadRequestException('Lỗi khi cập nhật bài học')
     }

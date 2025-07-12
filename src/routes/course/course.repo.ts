@@ -7,6 +7,7 @@ import {
   CreateCourseBodyType,
   CreateCourseResType,
   GetCourseDetailResType,
+  GetCourseDetailResTypeForAdmin,
   GetCoursesQueryType,
   GetManageCoursesQueryType,
   ListCoursesResType,
@@ -23,7 +24,7 @@ export class CourseRepo {
    * Lấy chi tiết khóa học
    */
   async getCourseDetail(courseId: number): Promise<GetCourseDetailResType | null> {
-    return this.prismaService.course.findUnique({
+    const course = await this.prismaService.course.findUnique({
       where: {
         id: courseId,
         deletedAt: null,
@@ -65,7 +66,8 @@ export class CourseRepo {
               select: {
                 id: true,
                 title: true,
-                order: true
+                order: true,
+                duration: true
               },
               where: {
                 deletedAt: null,
@@ -86,6 +88,22 @@ export class CourseRepo {
         }
       }
     })
+    if (!course) {
+      return null
+    }
+    const chaptersWithDuration = course.chapters.map((chapter) => {
+      const duration = chapter.lessons.reduce((acc, lesson) => acc + lesson.duration, 0)
+      return {
+        ...chapter,
+        duration
+      }
+    })
+    const totalDuration = chaptersWithDuration.reduce((acc, chapter) => acc + chapter.duration, 0)
+    return {
+      ...course,
+      chapters: chaptersWithDuration,
+      duration: totalDuration
+    }
   }
 
   private generateFilter(query: GetCoursesQueryType | GetManageCoursesQueryType, isAdmin: boolean) {
@@ -186,8 +204,8 @@ export class CourseRepo {
    * API dành cho admin
    * Lấy chi tiết khóa học
    */
-  async getDetailForAdmin(courseId: number): Promise<GetCourseDetailResType | null> {
-    return this.prismaService.course.findUnique({
+  async getDetailForAdmin(courseId: number): Promise<GetCourseDetailResTypeForAdmin | null> {
+    const course = await this.prismaService.course.findUnique({
       where: {
         id: courseId,
         deletedAt: null
@@ -228,6 +246,22 @@ export class CourseRepo {
         }
       }
     })
+    if (!course) {
+      return null
+    }
+    const chaptersWithDuration = course.chapters.map((chapter) => {
+      const duration = chapter.lessons.reduce((acc, lesson) => acc + lesson.duration, 0)
+      return {
+        ...chapter,
+        duration
+      }
+    })
+    const totalDuration = chaptersWithDuration.reduce((acc, chapter) => acc + chapter.duration, 0)
+    return {
+      ...course,
+      chapters: chaptersWithDuration,
+      duration: totalDuration
+    }
   }
 
   async createCourse({

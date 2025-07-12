@@ -158,7 +158,6 @@ model Course {
   discount      Int       @default(0)
   image         String    
   video         String?
-  duration      Int       @default(0)
 
   comboChildren Course[] @relation("ComboCourses")
   // Là khóa con thuộc nhiều combo

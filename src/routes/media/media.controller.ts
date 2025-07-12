@@ -20,6 +20,7 @@ import { envConfig } from 'src/shared/config'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { IsPublic } from 'src/shared/decorators/auth.decorator'
 import { MessageRes } from 'src/shared/decorators/message.decorator'
+import { getVideoDuration } from 'src/shared/helpers'
 import { ParseFilePipeWithUnlink } from 'src/shared/pipes/parse-file-pipe-with-unlink.pipe'
 import { SharedLessonRepository } from 'src/shared/repositories/shared-lesson.repo'
 import { SessionTokenPayload } from 'src/shared/types/jwt.type'
@@ -56,7 +57,7 @@ export class MediaController {
   @Post('videos/upload')
   @MessageRes('Tải video lên thành công')
   @UseInterceptors(FilesInterceptor('files', 1))
-  uploadVideos(
+  async uploadVideos(
     @UploadedFiles(
       new ParseFilePipeWithUnlink({
         validators: [
@@ -67,15 +68,19 @@ export class MediaController {
     )
     files: Array<Express.Multer.File>
   ) {
-    return files.map((video) => {
-      const key = video.filename.split('.')[0]
-      const url = `${envConfig.URL_ENDPOINT}/media/static/videos/${video.filename}`
-      return {
-        url,
-        key,
-        type: 'video'
-      }
-    })
+    return await Promise.all(
+      files.map(async (video) => {
+        const videoDuration = (await getVideoDuration(video.path)) ?? 0
+        const key = video.filename.split('.')[0]
+        const url = `${envConfig.URL_ENDPOINT}/media/static/videos/${video.filename}`
+        return {
+          url,
+          key,
+          type: 'video',
+          duration: videoDuration
+        }
+      })
+    )
   }
 
   @Get('static/images/:filename')

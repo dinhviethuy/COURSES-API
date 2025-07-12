@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client'
 import { randomInt } from 'crypto'
+import ffmpeg from 'fluent-ffmpeg'
 import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -34,4 +35,23 @@ export const generateQueueJobId = (paymentId: number) => {
 
 export const generateRoomId = (userId: number) => {
   return `userId-${userId}`
+}
+
+export const getVideoDuration = async (videoPath: string): Promise<number> => {
+  return new Promise((resolve, reject) => {
+    ffmpeg.ffprobe(videoPath, (err, metadata) => {
+      if (err) {
+        reject(new Error(err instanceof Error ? err.message : String(err)))
+        return
+      }
+      const videoStream = metadata.streams.find((stream: any) => stream.codec_type === 'video')
+      if (videoStream?.duration) {
+        resolve(Number(videoStream.duration))
+      }
+      if (metadata.format.duration) {
+        resolve(Number(metadata.format.duration))
+      }
+      reject(new Error('Không tìm thấy độ dài video'))
+    })
+  })
 }

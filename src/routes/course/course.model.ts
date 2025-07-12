@@ -80,17 +80,20 @@ export const GetCourseDetailResSchema = CourseSchema.pick({
   video: true,
   courseType: true
 }).extend({
+  duration: z.number().min(0).default(0),
   chapters: z.array(
     ChapterSchema.pick({
       id: true,
       title: true,
       order: true
     }).extend({
+      duration: z.number().min(0).default(0),
       lessons: z.array(
         LessonSchema.pick({
           id: true,
           title: true,
-          order: true
+          order: true,
+          duration: true
         })
       )
     })
@@ -118,6 +121,7 @@ export const GetCourseDetailResSchemaForAdmin = CourseSchema.pick({
   video: true,
   courseType: true
 }).extend({
+  duration: z.number().min(0).default(0),
   chapters: z.array(
     ChapterSchema.pick({
       id: true,
@@ -126,6 +130,7 @@ export const GetCourseDetailResSchemaForAdmin = CourseSchema.pick({
       order: true,
       isDraft: true
     }).extend({
+      duration: z.number().min(0).default(0),
       lessons: z.array(
         LessonSchema.pick({
           id: true,

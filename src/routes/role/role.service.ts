@@ -16,7 +16,7 @@ export class RoleService {
   async findById(id: number) {
     const role = await this.roleRepo.findById(id)
     if (!role) {
-      throw new NotFoundException('Role not found')
+      throw new NotFoundException('Không tìm thấy vai trò')
     }
     return role
   }
@@ -30,7 +30,7 @@ export class RoleService {
       return role
     } catch (error) {
       if (isUniqueConstraintPrismaError(error)) {
-        throw new BadRequestException('Role already exists')
+        throw new BadRequestException('Vai trò đã tồn tại')
       }
       throw error
     }
@@ -41,12 +41,12 @@ export class RoleService {
   private async verifyRole(roleId: number) {
     const role = await this.roleRepo.findById(roleId)
     if (!role) {
-      throw new NotFoundException('Role not found')
+      throw new NotFoundException('Không tìm thấy vai trò')
     }
     const baseRoles: string[] = [RoleName.ADMIN, RoleName.STUDENT, RoleName.TEACHER]
 
     if (baseRoles.includes(role.name)) {
-      throw new BadRequestException('Prohibited action on base role')
+      throw new BadRequestException('Không thể thực hiện hành động trên vai trò cơ bản')
     }
   }
 
@@ -61,10 +61,10 @@ export class RoleService {
       return updatedRole
     } catch (error) {
       if (isNotFoundPrismaError(error)) {
-        throw new NotFoundException('Role not found')
+        throw new NotFoundException('Không tìm thấy vai trò')
       }
       if (isUniqueConstraintPrismaError(error)) {
-        throw new BadRequestException('Role already exists')
+        throw new BadRequestException('Vai trò đã tồn tại')
       }
 
       throw error
@@ -83,7 +83,7 @@ export class RoleService {
       return true
     } catch (error) {
       if (isNotFoundPrismaError(error)) {
-        throw new NotFoundException('Role not found')
+        throw new NotFoundException('Không tìm thấy vai trò')
       }
       throw error
     }

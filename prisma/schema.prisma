@@ -54,6 +54,11 @@ enum CourseEnrollmentStatus {
   BLOCKED
 }
 
+enum CouponType {
+  PERCENT
+  FIXED
+}
+
 model User {
   id            Int       @id @default(autoincrement())
   role          Role      @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -62,6 +67,8 @@ model User {
   fullName      String
   password      String
   status        UserStatus @default(ACTIVE)
+  benefits      String[]   @default([])
+  cartItems     CartItem[]   @relation("UserCart")
 
   createdBy     User?     @relation("UserCreatedUsers", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   createdById   Int?
@@ -85,6 +92,9 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
+
+  @@index([email])
+  @@index([status])
 }
 
 model Role {
@@ -154,6 +164,8 @@ model Course {
   // Là khóa con thuộc nhiều combo
   comboParents  Course[] @relation("ComboCourses")
 
+  cartItems          CartItem[]
+
   createdBy     User?     @relation("CourseCreators", fields: [createdById], references: [id], onDelete: Cascade, onUpdate: NoAction)
   createdById   Int?
   updatedBy     User?     @relation("CourseUpdatedUsers", fields: [updatedById], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -163,7 +175,7 @@ model Course {
 
   chapters      Chapter[]
   courseEnrollments CourseEnrollment[]
-  orders        OrderCourses[]
+  orders        Order[]
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -171,6 +183,8 @@ model Course {
 
   @@unique([slug])
   @@index([slug])
+  @@index([courseType])
+  @@index([isDraft])
 }
 
 model Chapter {
@@ -230,6 +244,7 @@ model CourseEnrollment {
   updatedAt     DateTime  @updatedAt
 
   @@unique([courseId, userId])
+  @@index([status])
 }
 
 model Order {
@@ -237,10 +252,10 @@ model Order {
   user          User        @relation("OrderUser", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   userId        Int
   status        OrderStatus
-  payment       Payment     @relation("OrderPayment", fields: [paymentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  paymentId     Int
 
-  courses       OrderCourses[]
+  courses       Course[]
+
+  payment       Payment?    @relation("OrderPayment")
 
   createdById   Int?
   updatedById   Int?
@@ -248,31 +263,15 @@ model Order {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   deletedAt     DateTime?
-}
 
-model OrderCourses {
-  id        Int     @id @default(autoincrement())
-  order     Order   @relation(fields: [orderId], references: [id])
-  orderId   Int
-  course    Course  @relation(fields: [courseId], references: [id])
-  courseId  Int
+  @@index([userId])
+  @@index([status])
 }
 
 model Payment {
-  id            Int               @id @default(autoincrement())
-  status        PaymentStatus
-  orders        Order[]           @relation("OrderPayment")
-
-  transactions  PaymentTransaction[]
-
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime
-}
-
-model PaymentTransaction {
   id                  Int       @id @default(autoincrement())
-  payment             Payment?  @relation(fields: [paymentId], references: [id])
-  paymentId           Int?
+  orderId             Int       @unique
+  order               Order     @relation("OrderPayment", fields: [orderId], references: [id])
   gateway             String
   transactionDate     DateTime  @default(now())
   accountNumber       String
@@ -286,6 +285,8 @@ model PaymentTransaction {
   body                String?
 
   createdAt           DateTime  @default(now())
+
+  @@index([orderId])
 }
 
 
@@ -300,4 +301,44 @@ model VerificationCode {
 
   @@unique([email, type])
   @@index([expiresAt])
+}
+
+model CartItem {
+  id            Int       @id @default(autoincrement())
+  user          User      @relation("UserCart", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  userId        Int               
+  
+  courseId      Int
+  course        Course @relation(fields: [courseId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+
+}
+
+model Coupon {
+  code String @id
+  discount Int
+  startAt DateTime
+  endAt DateTime
+  isActive Boolean @default(true)
+
+  type CouponType
+
+  createdById   Int?
+  updatedById   Int?
+  deletedById   Int?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  @@unique([code])
+  @@index([startAt, endAt])
+  @@index([isActive])
 }

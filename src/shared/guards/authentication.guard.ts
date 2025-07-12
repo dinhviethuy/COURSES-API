@@ -40,13 +40,13 @@ export class AuthenticationGuard implements CanActivate {
     for (const guard of guards) {
       try {
         if (!(await guard.canActivate(context))) {
-          throw new UnauthorizedException()
+          throw new UnauthorizedException('Bạn không có quyền truy cập')
         }
       } catch (error) {
         if (error instanceof HttpException) {
           throw error
         }
-        throw new UnauthorizedException()
+        throw new UnauthorizedException('Bạn không có quyền truy cập')
       }
     }
     return true
@@ -68,6 +68,6 @@ export class AuthenticationGuard implements CanActivate {
     if (error instanceof HttpException) {
       throw error
     }
-    throw new UnauthorizedException()
+    throw new UnauthorizedException('Bạn không có quyền truy cập')
   }
 }

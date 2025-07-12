@@ -84,7 +84,7 @@ export class MediaController {
     const safeFilename = path.basename(filename)
     const file = path.resolve(`./uploads/images/${safeFilename}`)
     if (!fs.existsSync(file)) {
-      const notFound = new NotFoundException('Image not found')
+      const notFound = new NotFoundException('Không tìm thấy ảnh')
       return res.status(notFound.getStatus()).json(notFound)
     }
     return res.sendFile(file)
@@ -106,7 +106,7 @@ export class MediaController {
     const safeFilename = path.basename(filename)
     const videoPath = path.resolve(`./uploads/videos/${safeFilename}`)
     if (!fs.existsSync(videoPath)) {
-      const notFound = new NotFoundException('Video not found')
+      const notFound = new NotFoundException('Không tìm thấy video')
       return res.status(notFound.getStatus()).json(notFound)
     }
     res.setHeader('Content-Type', 'video/mp4')

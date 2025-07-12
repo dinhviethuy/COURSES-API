@@ -7,7 +7,7 @@ export class PaymentAPIKeyGuard implements CanActivate {
     const request = context.switchToHttp().getRequest()
     const paymentAPIKey = request.headers['authorization']?.split(' ')[1]
     if (paymentAPIKey !== envConfig.PAYMENT_API_KEY) {
-      throw new UnauthorizedException()
+      throw new UnauthorizedException('Mã API Key thanh toán không hợp lệ')
     }
     return true
   }

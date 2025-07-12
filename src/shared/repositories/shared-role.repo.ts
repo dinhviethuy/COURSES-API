@@ -15,7 +15,7 @@ export class SharedRoleRepository {
       SELECT * FROM "Role" WHERE name = ${roleName} AND "deletedAt" IS NULL LIMIT 1
     `.then((res: any[]) => {
       if (res.length === 0) {
-        throw new Error('Role not found')
+        throw new Error('Vai trò không tồn tại')
       }
       return res[0]
     })

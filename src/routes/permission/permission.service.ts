@@ -15,7 +15,7 @@ export class PermissionService {
   async findById(id: number) {
     const permisson = await this.permissionRepo.findById(id)
     if (!permisson) {
-      throw new NotFoundException('Permission not found')
+      throw new NotFoundException('Không tìm thấy quyền')
     }
     return permisson
   }
@@ -28,7 +28,7 @@ export class PermissionService {
       })
     } catch (error) {
       if (isUniqueConstraintPrismaError(error)) {
-        throw new BadRequestException('Permission already exists')
+        throw new BadRequestException('Quyền đã tồn tại')
       }
       throw error
     }
@@ -44,10 +44,10 @@ export class PermissionService {
       return permisson
     } catch (error) {
       if (isNotFoundPrismaError(error)) {
-        throw new NotFoundException('Permission not found')
+        throw new NotFoundException('Không tìm thấy quyền')
       }
       if (isUniqueConstraintPrismaError(error)) {
-        throw new BadRequestException('Permission already exists')
+        throw new BadRequestException('Quyền đã tồn tại')
       }
       throw error
     }
@@ -59,7 +59,7 @@ export class PermissionService {
       return true
     } catch (error) {
       if (isNotFoundPrismaError(error)) {
-        throw new NotFoundException('Permission not found')
+        throw new NotFoundException('Không tìm thấy quyền')
       }
       throw error
     }

@@ -43,7 +43,7 @@ export class ManageCourseController {
       return course
     } catch (error) {
       if (isUniqueConstraintPrismaError(error)) {
-        throw new BadRequestException('Slug đã tồn tại')
+        throw new BadRequestException('Slug đã tồn tại, vui lòng chọn slug khác')
       }
       throw error
     }
@@ -66,7 +66,7 @@ export class ManageCourseController {
       return course
     } catch (error) {
       if (isUniqueConstraintPrismaError(error)) {
-        throw new BadRequestException('Slug đã tồn tại')
+        throw new BadRequestException('Slug đã tồn tại, vui lòng chọn slug khác')
       }
       throw error
     }

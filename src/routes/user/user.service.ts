@@ -29,7 +29,7 @@ export class UserService {
       id: userId
     })
     if (!user) {
-      throw new NotFoundException('User not found')
+      throw new NotFoundException('Người dùng không tồn tại')
     }
     return user
   }
@@ -60,11 +60,11 @@ export class UserService {
       return user
     } catch (error) {
       if (isForeignKeyConstraintPrismaError(error)) {
-        throw new BadRequestException('Role not found')
+        throw new BadRequestException('Vai trò không tồn tại')
       }
 
       if (isUniqueConstraintPrismaError(error)) {
-        throw new BadRequestException('User already exists')
+        throw new BadRequestException('Người dùng đã tồn tại')
       }
       throw error
     }
@@ -82,7 +82,7 @@ export class UserService {
     } else {
       const adminRole = await this.sharedRoleRepository.getAdminRoleId()
       if (roleIdTarget === adminRole) {
-        throw new ForbiddenException()
+        throw new ForbiddenException('Bạn không có quyền thực hiện hành động này')
       }
       return true
     }
@@ -130,15 +130,15 @@ export class UserService {
       return updatedUser
     } catch (error) {
       if (isNotFoundPrismaError(error)) {
-        throw new NotFoundException('User not found')
+        throw new NotFoundException('Người dùng không tồn tại')
       }
 
       if (isForeignKeyConstraintPrismaError(error)) {
-        throw new BadRequestException('Role not found')
+        throw new BadRequestException('Vai trò không tồn tại')
       }
 
       if (isUniqueConstraintPrismaError(error)) {
-        throw new BadRequestException('User already exists')
+        throw new BadRequestException('Người dùng đã tồn tại')
       }
       throw error
     }
@@ -149,7 +149,7 @@ export class UserService {
       id: userId
     })
     if (!currentUser) {
-      throw new NotFoundException('User not found')
+      throw new NotFoundException('Người dùng không tồn tại')
     }
     return {
       roleId: currentUser.roleId,
@@ -159,7 +159,7 @@ export class UserService {
 
   private verifyYourself({ userAgentId, userTargetId }: { userAgentId: number; userTargetId: number }) {
     if (userAgentId === userTargetId) {
-      throw new ForbiddenException('Cannot update or delete yourself')
+      throw new ForbiddenException('Không thể cập nhật hoặc xóa chính mình')
     }
   }
 
@@ -184,7 +184,7 @@ export class UserService {
       return true
     } catch (error) {
       if (isNotFoundPrismaError(error)) {
-        throw new NotFoundException('User not found')
+        throw new NotFoundException('Người dùng không tồn tại')
       }
       throw error
     }

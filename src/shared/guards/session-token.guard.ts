@@ -27,7 +27,7 @@ export class SessionTokenGuard implements CanActivate {
   private extractTokenFromHeader(request: any): string {
     const sessionToken = request.headers['authorization']?.split(' ')[1]
     if (!sessionToken) {
-      throw new UnauthorizedException('Session token is required')
+      throw new UnauthorizedException('Session token là bắt buộc')
     }
     return sessionToken
   }
@@ -37,7 +37,7 @@ export class SessionTokenGuard implements CanActivate {
       const payload = await this.tokenService.verifySessionToken(sessionToken)
       return payload
     } catch (error) {
-      throw new UnauthorizedException('Invalid session token')
+      throw new UnauthorizedException('Session token không hợp lệ')
     }
   }
 
@@ -63,11 +63,11 @@ export class SessionTokenGuard implements CanActivate {
         }
       })
       .catch(() => {
-        throw new ForbiddenException()
+        throw new ForbiddenException('Bạn không có quyền truy cập')
       })
     const canAccess = role.permissions.length > 0
     if (!canAccess) {
-      throw new ForbiddenException()
+      throw new ForbiddenException('Bạn không có quyền truy cập')
     }
     request[REQUEST_ROLE_PERMISSIONS] = role
   }

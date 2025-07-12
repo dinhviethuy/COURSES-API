@@ -58,7 +58,7 @@ export class ManageCourseService {
       return course
     } catch (error) {
       if (isNotFoundPrismaError(error)) {
-        throw new NotFoundException('Course not found')
+        throw new NotFoundException('Không tìm thấy khóa học')
       }
       if (isRequiredConnectPrismaError(error)) {
         if (data.courseType === CourseType.COMBO) {

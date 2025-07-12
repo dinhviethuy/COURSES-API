@@ -56,11 +56,11 @@ export class ProfileRepo {
       }
     })
     if (!user) {
-      throw new NotFoundException('User not found')
+      throw new NotFoundException('Người dùng không tồn tại')
     }
     const isPasswordValid = await this.hashingService.compare(password, user.password)
     if (!isPasswordValid) {
-      throw new BadRequestException('Invalid password')
+      throw new BadRequestException('Mật khẩu không hợp lệ')
     }
     const hashedPassword = await this.hashingService.hash(newPassword)
     return this.prismaService.user.update({

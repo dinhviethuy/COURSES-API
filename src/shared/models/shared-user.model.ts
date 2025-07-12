@@ -10,6 +10,7 @@ export const UserSchema = z.object({
   fullName: z.string(),
   roleId: z.number().int().positive(),
   status: z.enum([UserStatus.ACTIVE, UserStatus.BLOCKED]).default(UserStatus.ACTIVE),
+  benefits: z.array(z.string()).default([]),
   createdAt: z.date(),
   updatedAt: z.date(),
   deletedAt: z.date().nullable(),

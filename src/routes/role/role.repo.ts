@@ -84,7 +84,7 @@ export class RoleRepo {
       const deletedPermissions = permissions.filter((permission) => permission.deletedAt)
       if (deletedPermissions.length > 0) {
         const deletedIds = deletedPermissions.map((permission) => permission.id).join(', ')
-        throw new Error(`Permission with id has been deleted: ${deletedIds}`)
+        throw new Error(`Quyền có id ${deletedIds} đã bị xóa`)
       }
     }
     return this.prismaService.role.update({

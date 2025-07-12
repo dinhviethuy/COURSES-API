@@ -176,6 +176,7 @@ model Course {
   chapters      Chapter[]
   courseEnrollments CourseEnrollment[]
   orders        Order[]
+  snapshots     OrderItemSnapshot[]
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -252,6 +253,9 @@ model Order {
   user          User        @relation("OrderUser", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   userId        Int
   status        OrderStatus
+  coupon        Coupon?     @relation(fields: [couponCode], references: [code], onDelete: NoAction, onUpdate: NoAction)
+  couponCode    String?
+  snapshots     OrderItemSnapshot[]
 
   courses       Course[]
 
@@ -266,6 +270,33 @@ model Order {
 
   @@index([userId])
   @@index([status])
+}
+
+model OrderItemSnapshot {
+  id            Int         @id @default(autoincrement())
+  order         Order?       @relation(fields: [orderId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  orderId       Int?
+  coupon        Coupon?     @relation(fields: [couponCode], references: [code], onDelete: SetNull, onUpdate: NoAction)
+  couponCode    String?
+  course        Course?     @relation(fields: [courseId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  courseId      Int?
+  courseImage   String?
+  courseTitle   String?
+  coursePrice   Int?
+  courseDiscount Int?
+  courseType    CourseType?
+
+  couponDiscount Int?
+  couponType    CouponType?
+  couponStartAt DateTime?
+  couponEndAt   DateTime?
+  
+  createdAt     DateTime    @default(now())
+
+  @@index([orderId])
+  @@index([couponCode])
+  @@index([courseId])
+  @@index([createdAt])  
 }
 
 model Payment {
@@ -328,7 +359,10 @@ model Coupon {
   endAt DateTime
   isActive Boolean @default(true)
 
-  type CouponType
+  orderss     Order[]
+  snapshots   OrderItemSnapshot[]
+
+  couponType CouponType
 
   createdById   Int?
   updatedById   Int?

@@ -9,6 +9,7 @@ import { CouponModule } from 'src/routes/coupon/coupon.module'
 import { CourseModule } from 'src/routes/course/course.module'
 import { LessonModule } from 'src/routes/lesson/lesson.module'
 import { MediaModule } from 'src/routes/media/media.module'
+import { OrderModule } from 'src/routes/order/order.module'
 import { PermissionModule } from 'src/routes/permission/permission.module'
 import { ProfileModule } from 'src/routes/profile/profile.module'
 import { RoleModule } from 'src/routes/role/role.module'
@@ -31,7 +32,8 @@ import { SharedModule } from 'src/shared/shared.module'
     ChapterModule,
     LessonModule,
     CouponModule,
-    CartModule
+    CartModule,
+    OrderModule
   ],
   controllers: [AppController],
   providers: [

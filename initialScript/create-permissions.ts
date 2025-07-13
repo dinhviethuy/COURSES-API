@@ -16,9 +16,10 @@ const TeacherModule = [
   'LESSONS',
   'MANAGE-LESSONS',
   'COUPONS',
-  'CARTS'
+  'CARTS',
+  'ORDERS'
 ]
-const StudentModule = ['AUTH', 'PROFILE', 'COURSES', 'LESSONS', 'COUPONS', 'CARTS']
+const StudentModule = ['AUTH', 'PROFILE', 'COURSES', 'LESSONS', 'COUPONS', 'CARTS', 'ORDERS']
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)

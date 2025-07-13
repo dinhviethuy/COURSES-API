@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import {
   CartType,
   CreateCartBodyType,
@@ -6,6 +6,7 @@ import {
   GetCartQueryType,
   GetListCartResType
 } from 'src/routes/cart/cart.model'
+import { OrderStatus } from 'src/shared/constants/order.constant'
 import { OrderBy } from 'src/shared/constants/orther.constant'
 import { PrismaService } from 'src/shared/services/prisma.service'
 
@@ -59,6 +60,28 @@ export class CartRepo {
   }
 
   async createCart(body: CreateCartBodyType & { userId: number }): Promise<CreateCartResType> {
+    const order = await this.prismaService.order.findFirst({
+      where: {
+        userId: body.userId,
+        status: {
+          in: [OrderStatus.PENDING, OrderStatus.PAID]
+        }
+      },
+      include: {
+        snapshots: {
+          where: {
+            courseId: body.courseId
+          }
+        }
+      }
+    })
+    if (order) {
+      if (order.status === OrderStatus.PENDING) {
+        throw new BadRequestException('Bạn đang có đơn hàng chưa thanh toán')
+      } else if (order.status === OrderStatus.PAID) {
+        throw new BadRequestException('Bạn đã thanh toán đơn hàng này')
+      }
+    }
     const course = await this.prismaService.course.findUnique({
       where: {
         id: body.courseId,

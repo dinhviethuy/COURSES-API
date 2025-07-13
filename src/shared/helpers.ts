@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client'
 import { randomInt } from 'crypto'
 import ffmpeg from 'fluent-ffmpeg'
 import path from 'path'
+import { CouponType } from 'src/shared/constants/counpon.constant'
 import { v4 as uuidv4 } from 'uuid'
 
 export function isUniqueConstraintPrismaError(error: any): error is Prisma.PrismaClientKnownRequestError {
@@ -54,4 +55,28 @@ export const getVideoDuration = async (videoPath: string): Promise<number> => {
       reject(new Error('Không tìm thấy độ dài video'))
     })
   })
+}
+
+export const getTotalPrice = ({
+  coursePrice,
+  courseDiscount,
+  couponDiscount: couponDiscountFromParam,
+  couponType: couponTypeFromParam
+}: {
+  coursePrice: number | null
+  courseDiscount: number | null
+  couponDiscount: number | null
+  couponType: CouponType | null
+}) => {
+  const price = coursePrice ?? 0
+  const discount = courseDiscount ?? 0
+  const couponDiscount = couponDiscountFromParam ?? 0
+  const couponType = couponTypeFromParam ?? CouponType.PERCENT
+  let totalPrice = price * (1 - discount / 100)
+  if (couponType === CouponType.PERCENT) {
+    totalPrice = totalPrice * (1 - couponDiscount / 100)
+  } else {
+    totalPrice = totalPrice - couponDiscount
+  }
+  return totalPrice
 }

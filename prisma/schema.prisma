@@ -33,15 +33,9 @@ enum HTTPMethod {
 }
 
 enum OrderStatus {
-  CANCEL
-  SUCCESS
-  FAILED
-}
-
-enum PaymentStatus {
   PENDING
-  SUCCESS
-  FAILED
+  PAID
+  CANCELLED
 }
 
 enum CourseType {

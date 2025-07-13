@@ -1,0 +1,97 @@
+import { CouponType } from 'src/shared/constants/counpon.constant'
+import { CourseType } from 'src/shared/constants/course.constant'
+import { OrderStatus } from 'src/shared/constants/order.constant'
+import { z } from 'zod'
+
+export const OrderSchema = z.object({
+  id: z.number().int().positive(),
+  userId: z.number().int().positive(),
+  couponId: z.number().int().positive().nullable(),
+  status: z.enum([OrderStatus.CANCELLED, OrderStatus.PAID, OrderStatus.PENDING]).default(OrderStatus.PENDING),
+  createdById: z.number().int().positive().nullable(),
+  updatedById: z.number().int().positive().nullable(),
+  deletedById: z.number().int().positive().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  deletedAt: z.date().nullable()
+})
+
+export const OrderItemSnapshotSchema = z.object({
+  id: z.number().int().positive(),
+  orderId: z.number().int().positive().nullable(),
+  couponId: z.number().int().positive().nullable(),
+  courseId: z.number().int().positive().nullable(),
+  courseImage: z.string().nullable(),
+  courseTitle: z.string().nullable(),
+  coursePrice: z.number().int().min(0).nullable(),
+  courseDiscount: z.number().int().min(0).nullable(),
+  courseType: z.enum([CourseType.COMBO, CourseType.SINGLE]).nullable(),
+  couponDiscount: z.number().int().min(0).nullable(),
+  couponType: z.enum([CouponType.PERCENT, CouponType.FIXED]).nullable(),
+  couponStartAt: z.coerce.date().nullable(),
+  couponEndAt: z.coerce.date().nullable(),
+  createdAt: z.coerce.date()
+})
+
+export const GetOrderListResSchema = z.object({
+  orders: z.array(
+    OrderSchema.extend({
+      snapshots: z.array(OrderItemSnapshotSchema)
+    }).omit({
+      createdById: true,
+      updatedById: true,
+      deletedById: true,
+      createdAt: true,
+      updatedAt: true,
+      deletedAt: true
+    })
+  ),
+  totalItems: z.number(),
+  page: z.number(),
+  limit: z.number(),
+  totalPages: z.number()
+})
+
+export const GetOrderListQuerySchema = z.object({
+  page: z.number().int().positive().default(1),
+  limit: z.number().int().positive().default(10),
+  status: z.enum([OrderStatus.CANCELLED, OrderStatus.PAID, OrderStatus.PENDING]).optional()
+})
+
+export const GetOrderDetailResSchema = OrderSchema.pick({
+  id: true,
+  userId: true,
+  couponId: true,
+  status: true
+}).extend({
+  snapshots: z.array(OrderItemSnapshotSchema)
+})
+
+export const CreateOrderBodySchema = z
+  .object({
+    couponId: z.number().int().positive().optional().nullable(),
+    cartId: z.number().int().positive()
+  })
+  .strict()
+
+export const CancelOrderBodySchema = z
+  .object({
+    orderId: z.number().int().positive()
+  })
+  .strict()
+
+export const CreateOrderResSchema = OrderSchema
+
+export const GetOrderParamSchema = z.object({
+  orderId: z.coerce.number().int().positive()
+})
+
+export type OrderType = z.infer<typeof OrderSchema>
+export type OrderItemSnapshotType = z.infer<typeof OrderItemSnapshotSchema>
+export type CreateOrderBodyType = z.infer<typeof CreateOrderBodySchema>
+export type CancelOrderBodyType = z.infer<typeof CancelOrderBodySchema>
+export type CreateOrderResType = z.infer<typeof CreateOrderResSchema>
+export type GetOrderListQueryType = z.infer<typeof GetOrderListQuerySchema>
+export type GetOrderListResType = z.infer<typeof GetOrderListResSchema>
+export type GetOrderDetailResType = z.infer<typeof GetOrderDetailResSchema>
+export type GetOrderParamType = z.infer<typeof GetOrderParamSchema>

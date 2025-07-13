@@ -10,7 +10,7 @@ import {
 } from 'src/routes/order/order.model'
 import { CourseEnrollmentStatus } from 'src/shared/constants/course-enrollment.constant'
 import { OrderStatus } from 'src/shared/constants/order.constant'
-import { OrderBy } from 'src/shared/constants/orther.constant'
+import { OrderBy } from 'src/shared/constants/other.constant'
 import { getTotalPrice, isNotFoundPrismaError } from 'src/shared/helpers'
 import { PrismaService } from 'src/shared/services/prisma.service'
 

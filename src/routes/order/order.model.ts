@@ -18,9 +18,9 @@ export const OrderSchema = z.object({
 
 export const OrderItemSnapshotSchema = z.object({
   id: z.number().int().positive(),
-  orderId: z.number().int().positive().nullable(),
+  orderId: z.number().int().positive(),
   couponId: z.number().int().positive().nullable(),
-  courseId: z.number().int().positive().nullable(),
+  courseId: z.number().int().positive(),
   courseImage: z.string().nullable(),
   courseTitle: z.string().nullable(),
   coursePrice: z.number().int().min(0).nullable(),

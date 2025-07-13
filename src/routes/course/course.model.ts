@@ -1,6 +1,6 @@
 import { LessonSchema } from 'src/routes/lesson/lesson.model'
 import { CourseType } from 'src/shared/constants/course.constant'
-import { OrderBy, SortBy } from 'src/shared/constants/orther.constant'
+import { OrderBy, SortBy } from 'src/shared/constants/other.constant'
 import { ChapterSchema } from 'src/shared/models/shared-chapter.model'
 import { CourseSchema } from 'src/shared/models/shrared-course.model'
 import { z } from 'zod'

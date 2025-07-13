@@ -11,7 +11,7 @@ import {
   UpdateCouponResType
 } from 'src/routes/coupon/coupon.model'
 import { CouponType as CouponTypeConstant } from 'src/shared/constants/counpon.constant'
-import { OrderBy } from 'src/shared/constants/orther.constant'
+import { OrderBy } from 'src/shared/constants/other.constant'
 import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()

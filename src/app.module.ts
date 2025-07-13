@@ -10,6 +10,7 @@ import { CourseModule } from 'src/routes/course/course.module'
 import { LessonModule } from 'src/routes/lesson/lesson.module'
 import { MediaModule } from 'src/routes/media/media.module'
 import { OrderModule } from 'src/routes/order/order.module'
+import { PaymentModule } from 'src/routes/payment/payment.module'
 import { PermissionModule } from 'src/routes/permission/permission.module'
 import { ProfileModule } from 'src/routes/profile/profile.module'
 import { RoleModule } from 'src/routes/role/role.module'
@@ -33,7 +34,8 @@ import { SharedModule } from 'src/shared/shared.module'
     LessonModule,
     CouponModule,
     CartModule,
-    OrderModule
+    OrderModule,
+    PaymentModule
   ],
   controllers: [AppController],
   providers: [

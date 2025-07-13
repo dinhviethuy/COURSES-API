@@ -78,5 +78,8 @@ export const getTotalPrice = ({
   } else {
     totalPrice = totalPrice - couponDiscount
   }
+  if (totalPrice < 0) {
+    totalPrice = 0
+  }
   return totalPrice
 }

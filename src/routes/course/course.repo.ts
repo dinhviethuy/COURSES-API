@@ -12,7 +12,7 @@ import {
   UpdateCourseResType
 } from 'src/routes/course/course.model'
 import { CourseType } from 'src/shared/constants/course.constant'
-import { OrderBy, SortBy } from 'src/shared/constants/orther.constant'
+import { OrderBy, SortBy } from 'src/shared/constants/other.constant'
 import { CourseType as CourseTypeModel } from 'src/shared/models/shrared-course.model'
 import { PrismaService } from 'src/shared/services/prisma.service'
 

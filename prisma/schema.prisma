@@ -272,12 +272,12 @@ model Order {
 
 model OrderItemSnapshot {
   id            Int         @id @default(autoincrement())
-  order         Order?       @relation(fields: [orderId], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  orderId       Int?
+  order         Order       @relation(fields: [orderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  orderId       Int
   coupon        Coupon?     @relation(fields: [couponId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   couponId      Int?
-  course        Course?     @relation(fields: [courseId], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  courseId      Int?
+  course        Course     @relation(fields: [courseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  courseId      Int
   courseImage   String?
   courseTitle   String?
   coursePrice   Int?
@@ -303,7 +303,7 @@ model Payment {
   order               Order     @relation("OrderPayment", fields: [orderId], references: [id])
   gateway             String
   transactionDate     DateTime  @default(now())
-  accountNumber       String
+  accountNumber       String?
   subAccount          String?
   amountIn            Int       @default(0)
   amountOut           Int       @default(0)

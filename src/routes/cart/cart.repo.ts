@@ -7,7 +7,7 @@ import {
   GetListCartResType
 } from 'src/routes/cart/cart.model'
 import { OrderStatus } from 'src/shared/constants/order.constant'
-import { OrderBy } from 'src/shared/constants/orther.constant'
+import { OrderBy } from 'src/shared/constants/other.constant'
 import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
@@ -65,14 +65,15 @@ export class CartRepo {
         userId: body.userId,
         status: {
           in: [OrderStatus.PENDING, OrderStatus.PAID]
-        }
-      },
-      include: {
+        },
         snapshots: {
-          where: {
+          some: {
             courseId: body.courseId
           }
         }
+      },
+      include: {
+        snapshots: true
       }
     })
     if (order) {

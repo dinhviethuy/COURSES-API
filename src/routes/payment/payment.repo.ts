@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { parse } from 'date-fns'
 import { WebhookPaymentBodyType } from 'src/routes/payment/payment.model'
-import { CourseEnrollmentStatus } from 'src/shared/constants/course-enrollment.constant'
+import { PaymentProducer } from 'src/routes/payment/payment.producrer'
 import { OrderStatus } from 'src/shared/constants/order.constant'
 import { PREFIX_PAYMENT_CODE } from 'src/shared/constants/other.constant'
 import { getTotalPrice } from 'src/shared/helpers'
@@ -9,7 +9,10 @@ import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
 export class PaymentRepo {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly paymentProducer: PaymentProducer
+  ) {}
 
   async receiver(body: WebhookPaymentBodyType): Promise<number> {
     let amountIn = 0
@@ -85,13 +88,21 @@ export class PaymentRepo {
         }
       })
       const userId = order.userId
-      await tx.courseEnrollment.create({
-        data: {
+      const courseId = order.snapshots[0].courseId
+      await tx.courseEnrollment.upsert({
+        where: {
+          courseId_userId: {
+            courseId,
+            userId
+          }
+        },
+        update: {},
+        create: {
           userId,
-          courseId: order.snapshots[0].courseId,
-          status: CourseEnrollmentStatus.ACTIVE
+          courseId
         }
       })
+      await this.paymentProducer.removeJob(orderId)
       return userId
     })
     return userId

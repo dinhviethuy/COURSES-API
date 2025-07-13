@@ -8,6 +8,7 @@ import {
   GetOrderListResType,
   OrderType
 } from 'src/routes/order/order.model'
+import { OrderProducer } from 'src/routes/order/order.producer'
 import { CourseEnrollmentStatus } from 'src/shared/constants/course-enrollment.constant'
 import { OrderStatus } from 'src/shared/constants/order.constant'
 import { OrderBy } from 'src/shared/constants/other.constant'
@@ -16,7 +17,10 @@ import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
 export class OrderRepo {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly orderProducer: OrderProducer
+  ) {}
 
   async listOrders({ query, userId }: { query: GetOrderListQueryType; userId: number }): Promise<GetOrderListResType> {
     const { page, limit, status } = query
@@ -138,7 +142,7 @@ export class OrderRepo {
           }
         })
       } else {
-        // cancel job
+        await this.orderProducer.addCancelPaymentJob(order.id)
       }
       return order
     })

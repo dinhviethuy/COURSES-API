@@ -6,6 +6,7 @@ import { PaymentAPIKeyGuard } from 'src/shared/guards/payment-api-key.guard'
 import { SessionTokenGuard } from 'src/shared/guards/session-token.guard'
 import { SharedCourseEnrollmentRepository } from 'src/shared/repositories/shared-course-enrollment.repo'
 import { SharedLessonRepository } from 'src/shared/repositories/shared-lesson.repo'
+import { SharedPaymentReporitory } from 'src/shared/repositories/shared-payment.repo'
 import { SharedRoleRepository } from 'src/shared/repositories/shared-role.repo'
 import { SharedUserRepository } from 'src/shared/repositories/shared-user.repo'
 import { EmailService } from 'src/shared/services/email.service'
@@ -21,6 +22,7 @@ const sharedServices = [
   SharedUserRepository,
   SharedCourseEnrollmentRepository,
   SharedLessonRepository,
+  SharedPaymentReporitory,
   EmailService
 ]
 

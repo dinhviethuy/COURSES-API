@@ -25,7 +25,8 @@ const configSchema = z.object({
   OTP_EXPIRES_IN: z.string(),
   RESEND_API_KEY: z.string(),
   DOMAIN: z.string(),
-  URL_ENDPOINT: z.string()
+  URL_ENDPOINT: z.string(),
+  REDIS_URL: z.string()
 })
 
 const configServer = configSchema.safeParse(process.env)

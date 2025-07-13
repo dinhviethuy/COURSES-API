@@ -4,6 +4,7 @@ import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { AuthModule } from './routes/auth/auth.module'
 import { ChapterModule } from './routes/chapter/chapter.module'
+import { CouponModule } from './routes/coupon/coupon.module'
 import { CourseModule } from './routes/course/course.module'
 import { LessonModule } from './routes/lesson/lesson.module'
 import { MediaModule } from './routes/media/media.module'
@@ -27,7 +28,8 @@ import { SharedModule } from './shared/shared.module'
     MediaModule,
     CourseModule,
     ChapterModule,
-    LessonModule
+    LessonModule,
+    CouponModule
   ],
   controllers: [AppController],
   providers: [

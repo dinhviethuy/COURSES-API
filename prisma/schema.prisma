@@ -63,11 +63,10 @@ model User {
   id            Int       @id @default(autoincrement())
   role          Role      @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   roleId        Int
-  email         String    @unique
+  email         String    
   fullName      String
   password      String
   status        UserStatus @default(ACTIVE)
-  benefits      String[]   @default([])
   cartItems     CartItem[]   @relation("UserCart")
 
   createdBy     User?     @relation("UserCreatedUsers", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
@@ -99,7 +98,7 @@ model User {
 
 model Role {
   id            Int           @id @default(autoincrement())
-  name          String        @unique
+  name          String        
   description   String        @db.VarChar(500) @default("")
   isActive      Boolean       @default(true)
 
@@ -133,8 +132,6 @@ model Permission {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   deletedAt     DateTime?
-
-  @@unique([path, method])
 }
 
 model SessionToken {
@@ -158,6 +155,7 @@ model Course {
   discount      Int       @default(0)
   image         String    
   video         String?
+  benefits      String[]   @default([])
 
   comboChildren Course[] @relation("ComboCourses")
   // Là khóa con thuộc nhiều combo
@@ -181,7 +179,6 @@ model Course {
   updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
 
-  @@unique([slug])
   @@index([slug])
   @@index([courseType])
   @@index([isDraft])
@@ -345,7 +342,6 @@ model CartItem {
   updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
 
-  @@unique([userId, courseId])
   @@index([userId])
   @@index([courseId])
 

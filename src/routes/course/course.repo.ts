@@ -1,9 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
-import { CourseType, Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client'
+import { CourseType } from 'src/shared/constants/course.constant'
 import { OrderBy, SortBy } from 'src/shared/constants/orther.constant'
+import { CourseType as CourseTypeModel } from 'src/shared/models/shrared-course.model'
 import { PrismaService } from 'src/shared/services/prisma.service'
 import {
-  CourseType as CourseTypeModel,
   CreateCourseBodyType,
   CreateCourseResType,
   GetCourseDetailResType,
@@ -41,6 +42,7 @@ export class CourseRepo {
         discount: true,
         image: true,
         video: true,
+        benefits: true,
         comboChildren: {
           select: {
             id: true,

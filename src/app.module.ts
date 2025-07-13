@@ -16,6 +16,7 @@ import { HttpExceptionFilter } from './shared/filters/http-exception.filter'
 import { CustomZodSerializerInterceptor } from './shared/interceptors/custom-zod-serializer.interceptor'
 import CustomZodValidationPipe from './shared/pipes/custom-zod-validation.pipe'
 import { SharedModule } from './shared/shared.module'
+import { CartModule } from 'src/routes/cart/cart.module'
 
 @Module({
   imports: [
@@ -29,7 +30,8 @@ import { SharedModule } from './shared/shared.module'
     CourseModule,
     ChapterModule,
     LessonModule,
-    CouponModule
+    CouponModule,
+    CartModule
   ],
   controllers: [AppController],
   providers: [

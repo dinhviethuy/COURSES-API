@@ -2,27 +2,8 @@ import { LessonSchema } from 'src/routes/lesson/lesson.model'
 import { CourseType } from 'src/shared/constants/course.constant'
 import { OrderBy, SortBy } from 'src/shared/constants/orther.constant'
 import { ChapterSchema } from 'src/shared/models/shared-chapter.model'
+import { CourseSchema } from 'src/shared/models/shrared-course.model'
 import { z } from 'zod'
-
-export const CourseSchema = z.object({
-  id: z.number().int().positive(),
-  title: z.string(),
-  description: z.string().default(''),
-  slug: z.string(),
-  price: z.number().min(0),
-  isDraft: z.boolean().default(true),
-  discount: z.number().min(0).max(100).default(0),
-  image: z.string(),
-  video: z.string().nullable().optional(),
-  courseType: z.enum([CourseType.COMBO, CourseType.SINGLE]).default(CourseType.SINGLE),
-
-  createdAt: z.date(),
-  updatedAt: z.date(),
-  deletedAt: z.date().nullable(),
-  createdById: z.number().nullable(),
-  updatedById: z.number().nullable(),
-  deletedById: z.number().nullable()
-})
 
 export const ListCoursesResSchema = z.object({
   courses: z.array(
@@ -78,7 +59,8 @@ export const GetCourseDetailResSchema = CourseSchema.pick({
   discount: true,
   image: true,
   video: true,
-  courseType: true
+  courseType: true,
+  benefits: true
 }).extend({
   duration: z.number().min(0).default(0),
   chapters: z.array(
@@ -119,7 +101,8 @@ export const GetCourseDetailResSchemaForAdmin = CourseSchema.pick({
   discount: true,
   image: true,
   video: true,
-  courseType: true
+  courseType: true,
+  benefits: true
 }).extend({
   duration: z.number().min(0).default(0),
   chapters: z.array(
@@ -164,7 +147,8 @@ export const CreateCourseBodySchema = CourseSchema.pick({
   discount: true,
   image: true,
   video: true,
-  courseType: true
+  courseType: true,
+  benefits: true
 })
   .strict()
   .extend({
@@ -238,7 +222,6 @@ export const ReorderChaptersAndLessonsBodySchema = z
     }
   })
 
-export type CourseType = z.infer<typeof CourseSchema>
 export type GetCourseDetailResType = z.infer<typeof GetCourseDetailResSchema>
 export type CreateCourseBodyType = z.infer<typeof CreateCourseBodySchema>
 export type CreateCourseResType = z.infer<typeof CreateCourseResSchema>

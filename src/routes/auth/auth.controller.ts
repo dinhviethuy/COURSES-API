@@ -1,9 +1,5 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common'
 import { ZodSerializerDto } from 'nestjs-zod'
-import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
-import { IsPublic } from 'src/shared/decorators/auth.decorator'
-import { MessageRes } from 'src/shared/decorators/message.decorator'
-import { EmptyBodyDTO } from 'src/shared/dtos/request.dto'
 import {
   ForgotPasswordBodyDTO,
   LoginBodyDTO,
@@ -12,8 +8,12 @@ import {
   RegisterResDTO,
   SendOTPBodyDTO,
   SessionTokenResDTO
-} from './auth.dto'
-import { AuthService } from './auth.service'
+} from 'src/routes/auth/auth.dto'
+import { AuthService } from 'src/routes/auth/auth.service'
+import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
+import { IsPublic } from 'src/shared/decorators/auth.decorator'
+import { MessageRes } from 'src/shared/decorators/message.decorator'
+import { EmptyBodyDTO } from 'src/shared/dtos/request.dto'
 
 @Controller('auth')
 export class AuthController {

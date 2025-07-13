@@ -1,10 +1,10 @@
 import { Controller, Get, Param } from '@nestjs/common'
 import { ZodSerializerDto } from 'nestjs-zod'
+import { GetLessonDetailResDTO, GetLessonParamsDTO } from 'src/routes/lesson/lesson.dto'
+import { LessonService } from 'src/routes/lesson/lesson.service'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { MessageRes } from 'src/shared/decorators/message.decorator'
 import { SessionTokenPayload } from 'src/shared/types/jwt.type'
-import { GetLessonDetailResDTO, GetLessonParamsDTO } from './lesson.dto'
-import { LessonService } from './lesson.service'
 
 @Controller('lessons')
 export class LessonController {

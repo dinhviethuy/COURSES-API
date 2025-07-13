@@ -1,7 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
 import { ZodSerializerDto } from 'nestjs-zod'
-import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
-import { MessageRes } from 'src/shared/decorators/message.decorator'
 import {
   CreateLessonBodyDTO,
   CreateLessonResDTO,
@@ -9,8 +7,10 @@ import {
   GetLessonParamsDTO,
   UpdateLessonBodyDTO,
   UpdateLessonResDTO
-} from './lesson.dto'
-import { ManageLessonService } from './manage-lesson.service'
+} from 'src/routes/lesson/lesson.dto'
+import { ManageLessonService } from 'src/routes/lesson/manage-lesson.service'
+import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
+import { MessageRes } from 'src/shared/decorators/message.decorator'
 
 @Controller('manage-lessons')
 export class ManageLessonController {

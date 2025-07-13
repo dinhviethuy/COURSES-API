@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
-import { CourseEnrollmentStatus } from '../constants/course-enrollment.constant'
-import { PrismaService } from '../services/prisma.service'
+import { CourseEnrollmentStatus } from 'src/shared/constants/course-enrollment.constant'
+import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
 export class SharedCourseEnrollmentRepository {

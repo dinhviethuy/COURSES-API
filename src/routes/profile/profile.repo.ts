@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
-
+import { ChangePasswordBodyType, GetProfileResType, UpdateProfileBodyType } from 'src/routes/profile/profile.model'
 import { UserStatus } from 'src/shared/constants/user.constant'
+import { UpdateProfileResType } from 'src/shared/models/shared-user.model'
 import { HashingService } from 'src/shared/services/hashing.service'
 import { PrismaService } from 'src/shared/services/prisma.service'
-import { ChangePasswordBodyType, GetProfileResType, UpdateProfileBodyType, UpdateProfileResType } from './profile.model'
 
 @Injectable()
 export class ProfileRepo {

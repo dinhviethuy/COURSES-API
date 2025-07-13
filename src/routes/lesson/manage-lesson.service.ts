@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common'
+import { CreateLessonBodyType, UpdateLessonBodyType } from 'src/routes/lesson/lesson.model'
+import { LessonRepo } from 'src/routes/lesson/lesson.repo'
 import {
   isForeignKeyConstraintPrismaError,
   isNotFoundPrismaError,
   isUniqueConstraintPrismaError
 } from 'src/shared/helpers'
-import { CreateLessonBodyType, UpdateLessonBodyType } from './lesson.model'
-import { LessonRepo } from './lesson.repo'
 
 @Injectable()
 export class ManageLessonService {

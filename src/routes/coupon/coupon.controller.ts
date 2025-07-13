@@ -1,7 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
 import { ZodSerializerDto } from 'nestjs-zod'
-import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
-import { MessageRes } from 'src/shared/decorators/message.decorator'
 import {
   CreateCouponBodyDTO,
   CreateCouponResDTO,
@@ -12,8 +10,10 @@ import {
   GetValidateCouponResDTO,
   UpdateCouponBodyDTO,
   UpdateCouponResDTO
-} from './coupon.dto'
-import { CouponService } from './coupon.service'
+} from 'src/routes/coupon/coupon.dto'
+import { CouponService } from 'src/routes/coupon/coupon.service'
+import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
+import { MessageRes } from 'src/shared/decorators/message.decorator'
 
 @Controller('coupons')
 export class CouponController {

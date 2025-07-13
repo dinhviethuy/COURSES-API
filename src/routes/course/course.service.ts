@@ -1,6 +1,6 @@
 import { HttpException, Injectable, NotFoundException } from '@nestjs/common'
-import { GetCoursesQueryType } from './course.model'
-import { CourseRepo } from './course.repo'
+import { GetCoursesQueryType } from 'src/routes/course/course.model'
+import { CourseRepo } from 'src/routes/course/course.repo'
 
 @Injectable()
 export class CourseService {

@@ -1,7 +1,4 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
-import { CouponType as CouponTypeConstant } from 'src/shared/constants/counpon.constant'
-import { OrderBy } from 'src/shared/constants/orther.constant'
-import { PrismaService } from 'src/shared/services/prisma.service'
 import {
   CouponType,
   CreateCouponBodyType,
@@ -12,7 +9,10 @@ import {
   GetValidateCouponResType,
   UpdateCouponBodyType,
   UpdateCouponResType
-} from './coupon.model'
+} from 'src/routes/coupon/coupon.model'
+import { CouponType as CouponTypeConstant } from 'src/shared/constants/counpon.constant'
+import { OrderBy } from 'src/shared/constants/orther.constant'
+import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
 export class CouponRepo {

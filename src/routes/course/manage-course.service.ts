@@ -1,8 +1,8 @@
 import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common'
+import { CreateCourseBodyType, GetManageCoursesQueryType, UpdateCourseBodyType } from 'src/routes/course/course.model'
+import { CourseRepo } from 'src/routes/course/course.repo'
 import { CourseType } from 'src/shared/constants/course.constant'
 import { isNotFoundPrismaError, isRequiredConnectPrismaError } from 'src/shared/helpers'
-import { CreateCourseBodyType, GetManageCoursesQueryType, UpdateCourseBodyType } from './course.model'
-import { CourseRepo } from './course.repo'
 
 @Injectable()
 export class ManageCourseService {

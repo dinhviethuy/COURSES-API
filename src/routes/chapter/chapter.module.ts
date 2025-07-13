@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common'
-import { ChapterController } from './chapter.controller'
-import { ChapterRepo } from './chapter.repo'
-import { ChapterService } from './chapter.service'
+import { ChapterController } from 'src/routes/chapter/chapter.controller'
+import { ChapterRepo } from 'src/routes/chapter/chapter.repo'
+import { ChapterService } from 'src/routes/chapter/chapter.service'
 
 @Module({
   controllers: [ChapterController],

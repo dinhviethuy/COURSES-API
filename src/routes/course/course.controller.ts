@@ -1,9 +1,14 @@
 import { Controller, Get, Param, Query } from '@nestjs/common'
 import { ZodSerializerDto } from 'nestjs-zod'
+import {
+  GetCourseDetailResDTO,
+  GetCourseParamsDTO,
+  GetCoursesQueryDTO,
+  ListCoursesResDTO
+} from 'src/routes/course/course.dto'
+import { CourseService } from 'src/routes/course/course.service'
 import { IsPublic } from 'src/shared/decorators/auth.decorator'
 import { MessageRes } from 'src/shared/decorators/message.decorator'
-import { GetCourseDetailResDTO, GetCourseParamsDTO, GetCoursesQueryDTO, ListCoursesResDTO } from './course.dto'
-import { CourseService } from './course.service'
 
 @Controller('courses')
 export class CourseController {

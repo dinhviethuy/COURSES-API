@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import { CreateRoleBodyType, GetRolesQueryType, UpdateRoleBodyType } from 'src/routes/role/role.model'
+import { RoleRepo } from 'src/routes/role/role.repo'
 import { RoleName } from 'src/shared/constants/role.constant'
 import { isNotFoundPrismaError, isUniqueConstraintPrismaError } from 'src/shared/helpers'
-import { CreateRoleBodyType, GetRolesQueryType, UpdateRoleBodyType } from './role.model'
-import { RoleRepo } from './role.repo'
 
 @Injectable()
 export class RoleService {

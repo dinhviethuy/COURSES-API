@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common'
 import { MulterModule } from '@nestjs/platform-express'
 import fs from 'fs'
 import multer from 'multer'
+import { MediaController } from 'src/routes/media/media.controller'
 import { generateRandomFilename } from 'src/shared/helpers'
-import { MediaController } from './media.controller'
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {

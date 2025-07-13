@@ -1,9 +1,10 @@
 import { Body, Controller, Get, Put } from '@nestjs/common'
 import { ZodSerializerDto } from 'nestjs-zod'
+import { ChangePasswordBodyDTO, GetProfileResDTO, UpdateProfileBodyDTO } from 'src/routes/profile/profile.dto'
+import { ProfileService } from 'src/routes/profile/profile.service'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { MessageRes } from 'src/shared/decorators/message.decorator'
-import { ChangePasswordBodyDTO, GetProfileResDTO, UpdateProfileBodyDTO, UpdateProfileResDTO } from './profile.dto'
-import { ProfileService } from './profile.service'
+import { UpdateProfileResDTO } from 'src/shared/dtos/shared-user.dto'
 
 @Controller('profile')
 export class ProfileController {

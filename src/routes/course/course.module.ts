@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common'
-import { CourseController } from './course.controller'
-import { CourseRepo } from './course.repo'
-import { CourseService } from './course.service'
-import { ManageCourseController } from './manage-course.controller'
-import { ManageCourseService } from './manage-course.service'
+import { CourseController } from 'src/routes/course/course.controller'
+import { CourseRepo } from 'src/routes/course/course.repo'
+import { CourseService } from 'src/routes/course/course.service'
+import { ManageCourseController } from 'src/routes/course/manage-course.controller'
+import { ManageCourseService } from 'src/routes/course/manage-course.service'
 
 @Module({
   controllers: [CourseController, ManageCourseController],

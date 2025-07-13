@@ -6,7 +6,7 @@ import {
   GetLessonParamsSchema,
   UpdateLessonBodySchema,
   UpdateLessonResSchema
-} from './lesson.model'
+} from 'src/routes/lesson/lesson.model'
 
 export class CreateLessonBodyDTO extends createZodDto(CreateLessonBodySchema) {}
 

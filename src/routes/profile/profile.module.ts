@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common'
-import { ProfileController } from './profile.controller'
-import { ProfileService } from './profile.service'
-import { ProfileRepo } from './profile.repo'
+import { ProfileController } from 'src/routes/profile/profile.controller'
+import { ProfileRepo } from 'src/routes/profile/profile.repo'
+import { ProfileService } from 'src/routes/profile/profile.service'
 
 @Module({
   controllers: [ProfileController],

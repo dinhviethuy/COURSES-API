@@ -11,7 +11,7 @@ import {
   ReorderChaptersAndLessonsBodySchema,
   UpdateCourseBodySchema,
   UpdateCourseResSchema
-} from './course.model'
+} from 'src/routes/course/course.model'
 
 export class GetCourseDetailResDTO extends createZodDto(GetCourseDetailResSchema) {}
 

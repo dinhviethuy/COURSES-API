@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
+import { LessonRepo } from 'src/routes/lesson/lesson.repo'
 import { SharedLessonRepository } from 'src/shared/repositories/shared-lesson.repo'
-import { LessonRepo } from './lesson.repo'
 
 @Injectable()
 export class LessonService {

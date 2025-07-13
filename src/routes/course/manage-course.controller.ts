@@ -1,8 +1,5 @@
 import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common'
 import { ZodSerializerDto } from 'nestjs-zod'
-import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
-import { MessageRes } from 'src/shared/decorators/message.decorator'
-import { isUniqueConstraintPrismaError } from 'src/shared/helpers'
 import {
   CreateCourseBodyDTO,
   CreateCourseResDTO,
@@ -13,8 +10,11 @@ import {
   ReorderChaptersAndLessonsBodyDTO,
   UpdateCourseBodyDTO,
   UpdateCourseResDTO
-} from './course.dto'
-import { ManageCourseService } from './manage-course.service'
+} from 'src/routes/course/course.dto'
+import { ManageCourseService } from 'src/routes/course/manage-course.service'
+import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
+import { MessageRes } from 'src/shared/decorators/message.decorator'
+import { isUniqueConstraintPrismaError } from 'src/shared/helpers'
 
 @Controller('manage-courses')
 export class ManageCourseController {

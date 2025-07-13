@@ -6,7 +6,7 @@ import {
   GetPermissionsQuerySchema,
   GetPermissionsResSchema,
   UpdatePermissionBodySchema
-} from './permission.model'
+} from 'src/routes/permission/permission.model'
 
 export class GetPermissionsResDTO extends createZodDto(GetPermissionsResSchema) {}
 export class GetPermissionParamsDTO extends createZodDto(GetPermissionParamsSchema) {}

@@ -2,7 +2,7 @@ import { CallHandler, ExecutionContext, Injectable, StreamableFile } from '@nest
 import { Reflector } from '@nestjs/core'
 import { validate, ZodSerializationException, ZodSerializerInterceptor } from 'nestjs-zod'
 import { map, Observable } from 'rxjs'
-import { MessageKey } from '../decorators/message.decorator'
+import { MessageKey } from 'src/shared/decorators/message.decorator'
 import { ZodError } from 'zod'
 
 const createZodSerializationException = (error: ZodError) => {

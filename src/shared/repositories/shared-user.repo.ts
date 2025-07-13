@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
-import { PermissionType } from '../models/shared-permission.model'
-import { RoleType } from '../models/shared-role.model'
-import { UserType } from '../models/shared-user.model'
-import { PrismaService } from '../services/prisma.service'
+import { PermissionType } from 'src/shared/models/shared-permission.model'
+import { RoleType } from 'src/shared/models/shared-role.model'
+import { UserType } from 'src/shared/models/shared-user.model'
+import { PrismaService } from 'src/shared/services/prisma.service'
 
 type UserIncludeRolePermissionsType = UserType & { role: RoleType & { permissions: PermissionType[] } }
 

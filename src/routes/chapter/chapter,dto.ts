@@ -5,7 +5,7 @@ import {
   GetChapterParamsSchema,
   UpdateChaperBodySchema,
   UpdateChaperResSchema
-} from './chapter.model'
+} from 'src/routes/chapter/chapter.model'
 
 export class CreateChaperBodyDTO extends createZodDto(CreateChaperBodySchema) {}
 

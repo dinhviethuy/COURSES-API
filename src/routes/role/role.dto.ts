@@ -7,7 +7,7 @@ import {
   GetRolesQuerySchema,
   GetRolesResSchema,
   UpdateRoleBodySchema
-} from './role.model'
+} from 'src/routes/role/role.model'
 
 export class GetRolesResDTO extends createZodDto(GetRolesResSchema) {}
 

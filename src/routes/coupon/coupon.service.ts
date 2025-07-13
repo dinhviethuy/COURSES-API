@@ -1,7 +1,7 @@
 import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common'
+import { CreateCouponBodyType, GetValidateCouponBodyType, UpdateCouponBodyType } from 'src/routes/coupon/coupon.model'
+import { CouponRepo } from 'src/routes/coupon/coupon.repo'
 import { isNotFoundPrismaError, isUniqueConstraintPrismaError } from 'src/shared/helpers'
-import { CreateCouponBodyType, GetValidateCouponBodyType, UpdateCouponBodyType } from './coupon.model'
-import { CouponRepo } from './coupon.repo'
 
 @Injectable()
 export class CouponService {

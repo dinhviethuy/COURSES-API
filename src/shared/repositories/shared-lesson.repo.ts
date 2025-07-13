@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable } from '@nestjs/common'
-import { SharedCourseEnrollmentRepository } from './shared-course-enrollment.repo'
-import { SharedRoleRepository } from './shared-role.repo'
+import { SharedCourseEnrollmentRepository } from 'src/shared/repositories/shared-course-enrollment.repo'
+import { SharedRoleRepository } from 'src/shared/repositories/shared-role.repo'
 
 @Injectable()
 export class SharedLessonRepository {

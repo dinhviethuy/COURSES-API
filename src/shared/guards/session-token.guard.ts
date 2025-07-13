@@ -1,9 +1,9 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common'
-import { HTTPMethod } from 'generated/prisma'
-import { REQUEST_ROLE_PERMISSIONS, REQUEST_USER_KEY } from '../constants/auth.constant'
-import { PrismaService } from '../services/prisma.service'
-import { TokenService } from '../services/token.service'
-import { SessionTokenPayload } from '../types/jwt.type'
+import { REQUEST_ROLE_PERMISSIONS, REQUEST_USER_KEY } from 'src/shared/constants/auth.constant'
+import { HTTPMethod } from 'src/shared/constants/role.constant'
+import { PrismaService } from 'src/shared/services/prisma.service'
+import { TokenService } from 'src/shared/services/token.service'
+import { SessionTokenPayload } from 'src/shared/types/jwt.type'
 
 @Injectable()
 export class SessionTokenGuard implements CanActivate {

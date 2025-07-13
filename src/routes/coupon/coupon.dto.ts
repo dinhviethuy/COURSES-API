@@ -9,7 +9,7 @@ import {
   GetValidateCouponResSchema,
   UpdateCouponBodySchema,
   UpdateCouponResSchema
-} from './coupon.model'
+} from 'src/routes/coupon/coupon.model'
 
 export class CreateCouponBodyDTO extends createZodDto(CreateCouponBodySchema) {}
 

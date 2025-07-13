@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common'
-import { CouponController } from './coupon.controller'
-import { CouponService } from './coupon.service'
-import { CouponRepo } from './coupon.repo'
+import { CouponController } from 'src/routes/coupon/coupon.controller'
+import { CouponRepo } from 'src/routes/coupon/coupon.repo'
+import { CouponService } from 'src/routes/coupon/coupon.service'
 
 @Module({
   controllers: [CouponController],

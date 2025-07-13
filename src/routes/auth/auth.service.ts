@@ -1,10 +1,10 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common'
+import { ForgotPasswordBodyType, LoginBodyType, RegisterBodyType, SendOTPBodyType } from 'src/routes/auth/auth.model'
+import { AuthRepo } from 'src/routes/auth/auth.repo'
 import { OTPType, OTPTypeType } from 'src/shared/constants/auth.constant'
 import { generateOTP, isUniqueConstraintPrismaError } from 'src/shared/helpers'
 import { SharedUserRepository } from 'src/shared/repositories/shared-user.repo'
 import { EmailService } from 'src/shared/services/email.service'
-import { ForgotPasswordBodyType, LoginBodyType, RegisterBodyType, SendOTPBodyType } from './auth.model'
-import { AuthRepo } from './auth.repo'
 
 @Injectable()
 export class AuthService {

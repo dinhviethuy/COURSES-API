@@ -1,9 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
-import { CourseType } from 'src/shared/constants/course.constant'
-import { OrderBy, SortBy } from 'src/shared/constants/orther.constant'
-import { CourseType as CourseTypeModel } from 'src/shared/models/shrared-course.model'
-import { PrismaService } from 'src/shared/services/prisma.service'
 import {
   CreateCourseBodyType,
   CreateCourseResType,
@@ -14,7 +10,11 @@ import {
   ListCoursesResType,
   UpdateCourseBodyType,
   UpdateCourseResType
-} from './course.model'
+} from 'src/routes/course/course.model'
+import { CourseType } from 'src/shared/constants/course.constant'
+import { OrderBy, SortBy } from 'src/shared/constants/orther.constant'
+import { CourseType as CourseTypeModel } from 'src/shared/models/shrared-course.model'
+import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
 export class CourseRepo {

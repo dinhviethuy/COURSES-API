@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common'
-import { envConfig } from '../config'
+import { envConfig } from 'src/shared/config'
 
 @Injectable()
 export class PaymentAPIKeyGuard implements CanActivate {

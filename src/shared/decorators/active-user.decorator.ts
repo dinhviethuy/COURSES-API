@@ -1,5 +1,5 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common'
-import { SessionTokenPayload } from '../types/jwt.type'
+import { SessionTokenPayload } from 'src/shared/types/jwt.type'
 
 type ActiveUserField = keyof SessionTokenPayload | 'sessionToken' | undefined
 

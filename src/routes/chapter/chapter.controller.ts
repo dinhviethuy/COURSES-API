@@ -1,15 +1,15 @@
 import { Body, Controller, Delete, Param, Post, Put } from '@nestjs/common'
 import { ZodSerializerDto } from 'nestjs-zod'
-import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
-import { MessageRes } from 'src/shared/decorators/message.decorator'
 import {
   CreateChaperBodyDTO,
   CreateChaperResDTO,
   GetChapterParamsDTO,
   UpdateChaperBodyDTO,
   UpdateChaperResDTO
-} from './chapter,dto'
-import { ChapterService } from './chapter.service'
+} from 'src/routes/chapter/chapter,dto'
+import { ChapterService } from 'src/routes/chapter/chapter.service'
+import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
+import { MessageRes } from 'src/shared/decorators/message.decorator'
 
 @Controller('chapters')
 export class ChapterController {

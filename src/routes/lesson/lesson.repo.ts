@@ -1,5 +1,4 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
-import { PrismaService } from 'src/shared/services/prisma.service'
 import {
   CreateLessonBodyType,
   CreateLessonResType,
@@ -7,7 +6,8 @@ import {
   LessonType,
   UpdateLessonBodyType,
   UpdateLessonResType
-} from './lesson.model'
+} from 'src/routes/lesson/lesson.model'
+import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
 export class LessonRepo {

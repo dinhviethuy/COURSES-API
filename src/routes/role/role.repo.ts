@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common'
-import { RoleType } from 'src/shared/models/shared-role.model'
-import { PrismaService } from 'src/shared/services/prisma.service'
 import {
   CreateRoleBodyType,
   GetRolesQueryType,
   GetRolesResType,
   RoleWithPermissionsType,
   UpdateRoleBodyType
-} from './role.model'
+} from 'src/routes/role/role.model'
+import { RoleType } from 'src/shared/models/shared-role.model'
+import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
 export class RoleRepo {

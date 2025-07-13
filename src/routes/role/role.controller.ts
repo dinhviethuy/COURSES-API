@@ -1,7 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common'
 import { ZodSerializerDto } from 'nestjs-zod'
-import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
-import { MessageRes } from 'src/shared/decorators/message.decorator'
 import {
   CreateRoleBodyDTO,
   CreateRoleResDTO,
@@ -10,8 +8,10 @@ import {
   GetRolesQueryDTO,
   GetRolesResDTO,
   UpdateRoleBodyDTO
-} from './role.dto'
-import { RoleService } from './role.service'
+} from 'src/routes/role/role.dto'
+import { RoleService } from 'src/routes/role/role.service'
+import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
+import { MessageRes } from 'src/shared/decorators/message.decorator'
 
 @Controller('roles')
 export class RoleController {

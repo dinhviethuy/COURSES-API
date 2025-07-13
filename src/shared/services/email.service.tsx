@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import OTPEmail from 'emails/otp'
 import { Resend } from 'resend'
-import { envConfig } from '../config'
+import { envConfig } from 'src/shared/config'
 
 @Injectable()
 export class EmailService {

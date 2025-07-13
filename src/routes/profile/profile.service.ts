@@ -1,7 +1,7 @@
 import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common'
+import { ChangePasswordBodyType, UpdateProfileBodyType } from 'src/routes/profile/profile.model'
+import { ProfileRepo } from 'src/routes/profile/profile.repo'
 import { isNotFoundPrismaError } from 'src/shared/helpers'
-import { ChangePasswordBodyType, UpdateProfileBodyType } from './profile.model'
-import { ProfileRepo } from './profile.repo'
 
 @Injectable()
 export class ProfileService {

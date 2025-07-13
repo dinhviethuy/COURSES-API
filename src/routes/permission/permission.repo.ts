@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common'
-import { PrismaService } from 'src/shared/services/prisma.service'
 import {
   CreatePermissionBodyType,
   GetPermissionsQueryType,
   GetPermissionsResType,
-  PermissionType,
   UpdatePermissionBodyType
-} from './permission.model'
+} from 'src/routes/permission/permission.model'
+import { PermissionType } from 'src/shared/models/shared-permission.model'
+import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
 export class PermissionRepo {

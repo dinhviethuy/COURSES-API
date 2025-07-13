@@ -1,9 +1,9 @@
 import { CanActivate, ExecutionContext, HttpException, Injectable, UnauthorizedException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import { AuthType, AuthTypeType, ConditionGuard } from '../constants/auth.constant'
-import { AUTH_TYPE_KEY, AuthTypeDecoratorPayload } from '../decorators/auth.decorator'
-import { PaymentAPIKeyGuard } from './payment-api-key.guard'
-import { SessionTokenGuard } from './session-token.guard'
+import { AuthType, AuthTypeType, ConditionGuard } from 'src/shared/constants/auth.constant'
+import { AUTH_TYPE_KEY, AuthTypeDecoratorPayload } from 'src/shared/decorators/auth.decorator'
+import { PaymentAPIKeyGuard } from 'src/shared/guards/payment-api-key.guard'
+import { SessionTokenGuard } from 'src/shared/guards/session-token.guard'
 
 @Injectable()
 export class AuthenticationGuard implements CanActivate {

@@ -5,7 +5,7 @@ import {
   GetCartParamsSchema,
   GetCartQuerySchema,
   GetListCartResSchema
-} from './cart.model'
+} from 'src/routes/cart/cart.model'
 
 export class CreateCartBodyDTO extends createZodDto(CreateCartBodySchema) {}
 

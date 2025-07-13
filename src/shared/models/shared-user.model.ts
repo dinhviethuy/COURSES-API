@@ -1,7 +1,7 @@
 import { UserStatus } from 'src/shared/constants/user.constant'
+import { PermissionSchema } from 'src/shared/models/shared-permission.model'
+import { RoleSchema } from 'src/shared/models/shared-role.model'
 import z from 'zod'
-import { PermissionSchema } from './shared-permission.model'
-import { RoleSchema } from './shared-role.model'
 
 export const UserSchema = z.object({
   id: z.number().int().positive(),

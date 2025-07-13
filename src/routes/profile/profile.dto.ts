@@ -2,9 +2,9 @@ import { createZodDto } from 'nestjs-zod'
 import {
   ChangePasswordBodySchema,
   GetProfileResSchema,
-  UpdateProfileBodySchema,
-  UpdateProfileResSchema
-} from './profile.model'
+  UpdateProfileBodySchema
+} from 'src/routes/profile/profile.model'
+import { UpdateProfileResSchema } from 'src/shared/models/shared-user.model'
 
 export class GetProfileResDTO extends createZodDto(GetProfileResSchema) {}
 

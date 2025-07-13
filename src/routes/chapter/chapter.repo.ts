@@ -1,8 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+  CreateChaperBodyType,
+  CreateChaperResType,
+  UpdateChaperBodyType,
+  UpdateChaperResType
+} from 'src/routes/chapter/chapter.model'
 import { CourseType } from 'src/shared/constants/course.constant'
 import { ChapterType } from 'src/shared/models/shared-chapter.model'
 import { PrismaService } from 'src/shared/services/prisma.service'
-import { CreateChaperBodyType, CreateChaperResType, UpdateChaperBodyType, UpdateChaperResType } from './chapter.model'
 
 @Injectable()
 export class ChapterRepo {

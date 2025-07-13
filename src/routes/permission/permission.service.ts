@@ -1,7 +1,11 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+  CreatePermissionBodyType,
+  GetPermissionsQueryType,
+  UpdatePermissionBodyType
+} from 'src/routes/permission/permission.model'
+import { PermissionRepo } from 'src/routes/permission/permission.repo'
 import { isNotFoundPrismaError, isUniqueConstraintPrismaError } from 'src/shared/helpers'
-import { CreatePermissionBodyType, GetPermissionsQueryType, UpdatePermissionBodyType } from './permission.model'
-import { PermissionRepo } from './permission.repo'
 
 @Injectable()
 export class PermissionService {

@@ -1,5 +1,5 @@
+import { HTTPMethod } from 'src/shared/constants/role.constant'
 import { z } from 'zod'
-import { HTTPMethod } from '../constants/role.constant'
 
 export const PermissionSchema = z.object({
   id: z.number(),

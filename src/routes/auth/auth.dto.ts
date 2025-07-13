@@ -7,7 +7,7 @@ import {
   RegisterResSchema,
   SendOTPBodySchema,
   SessionTokenResSchema
-} from './auth.model'
+} from 'src/routes/auth/auth.model'
 
 export class LoginBodyDTO extends createZodDto(LoginBodySchema) {}
 

@@ -1,4 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
+import { CreateUserBodyType, GetUsersQueryType, UpdateUserBodyType } from 'src/routes/user/user.model'
+import { UserRepo } from 'src/routes/user/user.repo'
 import { RoleName } from 'src/shared/constants/role.constant'
 import {
   isForeignKeyConstraintPrismaError,
@@ -8,8 +10,6 @@ import {
 import { SharedRoleRepository } from 'src/shared/repositories/shared-role.repo'
 import { SharedUserRepository } from 'src/shared/repositories/shared-user.repo'
 import { HashingService } from 'src/shared/services/hashing.service'
-import { CreateUserBodyType, GetUsersQueryType, UpdateUserBodyType } from './user.model'
-import { UserRepo } from './user.repo'
 
 @Injectable()
 export class UserService {

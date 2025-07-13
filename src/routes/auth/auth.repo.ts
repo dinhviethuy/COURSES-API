@@ -1,6 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import { addMilliseconds } from 'date-fns'
 import ms from 'ms'
+import {
+  ForgotPasswordBodyType,
+  LoginBodyType,
+  LoginResType,
+  RegisterBodyType,
+  RegisterResType
+} from 'src/routes/auth/auth.model'
 import { envConfig } from 'src/shared/config'
 import { OTPTypeType } from 'src/shared/constants/auth.constant'
 import { RoleName } from 'src/shared/constants/role.constant'
@@ -11,7 +18,6 @@ import { HashingService } from 'src/shared/services/hashing.service'
 import { PrismaService } from 'src/shared/services/prisma.service'
 import { TokenService } from 'src/shared/services/token.service'
 import { SessionTokenPayloadCreate } from 'src/shared/types/jwt.type'
-import { ForgotPasswordBodyType, LoginBodyType, LoginResType, RegisterBodyType, RegisterResType } from './auth.model'
 
 @Injectable()
 export class AuthRepo {

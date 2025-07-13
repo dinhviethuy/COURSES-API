@@ -21,7 +21,7 @@ export class CouponRepo {
   async validateCoupon({ code, courseId }: GetValidateCouponBodyType): Promise<GetValidateCouponResType> {
     const data = new Date()
     const [coupon, course] = await Promise.all([
-      this.prisma.coupon.findUnique({
+      this.prisma.coupon.findFirst({
         where: {
           code,
           deletedAt: null,

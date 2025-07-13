@@ -372,7 +372,6 @@ model Coupon {
   updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
 
-  @@unique([code])
   @@index([startAt, endAt])
   @@index([isActive])
 }

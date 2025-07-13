@@ -92,6 +92,10 @@ model User {
   updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
 
+  createdOrders Order[]     @relation("OrderCreatedUsers")
+  updatedOrders Order[]     @relation("OrderUpdatedUsers")
+  deletedOrders Order[]     @relation("OrderDeletedUsers")
+
   @@index([email])
   @@index([status])
 }
@@ -258,7 +262,11 @@ model Order {
   payment       Payment?    @relation("OrderPayment")
 
   createdById   Int?
+  createdBy     User?     @relation("OrderCreatedUsers", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   updatedById   Int?
+  updatedBy     User?     @relation("OrderUpdatedUsers", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deletedById   Int?
+  deletedBy     User?     @relation("OrderDeletedUsers", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt

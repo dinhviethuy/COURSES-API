@@ -34,7 +34,17 @@ export class SessionTokenGuard implements CanActivate {
 
   private async validateSessionToken(sessionToken: string) {
     try {
-      const payload = await this.tokenService.verifySessionToken(sessionToken)
+      const [payload, sessionTokenInDb] = await Promise.all([
+        this.tokenService.verifySessionToken(sessionToken),
+        this.prismaService.sessionToken.findUnique({
+          where: {
+            token: sessionToken
+          }
+        })
+      ])
+      if (!sessionTokenInDb) {
+        throw new UnauthorizedException('Session token không hợp lệ')
+      }
       return payload
     } catch (error) {
       throw new UnauthorizedException('Session token không hợp lệ')

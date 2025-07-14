@@ -14,7 +14,7 @@ export class SessionTokenGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest()
-    const sessionToken = this.extractTokenFromHeader(request)
+    const sessionToken = this.extractTokenFromCookie(request)
     const payload = await this.validateSessionToken(sessionToken)
     request[REQUEST_USER_KEY] = {
       ...payload,
@@ -24,8 +24,8 @@ export class SessionTokenGuard implements CanActivate {
     return true
   }
 
-  private extractTokenFromHeader(request: any): string {
-    const sessionToken = request.headers['authorization']?.split(' ')[1]
+  private extractTokenFromCookie(request: any): string {
+    const sessionToken = request.cookies['sessionToken']
     if (!sessionToken) {
       throw new UnauthorizedException('Session token là bắt buộc')
     }

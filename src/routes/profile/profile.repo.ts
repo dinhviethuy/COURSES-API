@@ -24,7 +24,25 @@ export class ProfileRepo {
         email: true,
         fullName: true,
         status: true,
-        roleId: true
+        roleId: true,
+        role: {
+          select: {
+            id: true,
+            name: true,
+            permissions: {
+              select: {
+                id: true,
+                name: true,
+                method: true,
+                path: true,
+                module: true
+              },
+              where: {
+                deletedAt: null
+              }
+            }
+          }
+        }
       }
     })
   }

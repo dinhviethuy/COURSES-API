@@ -1,4 +1,6 @@
 import { OTPType } from 'src/shared/constants/auth.constant'
+import { PermissionSchema } from 'src/shared/models/shared-permission.model'
+import { RoleSchema } from 'src/shared/models/shared-role.model'
 import { UserSchema } from 'src/shared/models/shared-user.model'
 import { z } from 'zod'
 
@@ -7,8 +9,27 @@ export const LoginBodySchema = UserSchema.pick({
   password: true
 }).strict()
 
-export const LoginResSchema = z.object({
-  sessionToken: z.string()
+export const LoginResSchema = UserSchema.pick({
+  id: true,
+  email: true,
+  fullName: true,
+  status: true,
+  roleId: true
+}).extend({
+  role: RoleSchema.pick({
+    id: true,
+    name: true
+  }).extend({
+    permissions: z.array(
+      PermissionSchema.pick({
+        id: true,
+        name: true,
+        method: true,
+        path: true,
+        module: true
+      })
+    )
+  })
 })
 
 export const RegisterBodySchema = UserSchema.pick({

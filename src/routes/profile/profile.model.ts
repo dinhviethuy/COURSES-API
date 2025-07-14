@@ -1,3 +1,5 @@
+import { PermissionSchema } from 'src/shared/models/shared-permission.model'
+import { RoleSchema } from 'src/shared/models/shared-role.model'
 import { UserSchema } from 'src/shared/models/shared-user.model'
 import z from 'zod'
 
@@ -7,6 +9,21 @@ export const GetProfileResSchema = UserSchema.pick({
   fullName: true,
   status: true,
   roleId: true
+}).extend({
+  role: RoleSchema.pick({
+    id: true,
+    name: true
+  }).extend({
+    permissions: z.array(
+      PermissionSchema.pick({
+        id: true,
+        name: true,
+        method: true,
+        path: true,
+        module: true
+      })
+    )
+  })
 })
 
 export const UpdateProfileBodySchema = UserSchema.pick({

@@ -69,7 +69,7 @@ export class AuthRepo {
     })
   }
 
-  async login(body: LoginBodyType): Promise<LoginResType> {
+  async login(body: LoginBodyType): Promise<LoginResType & { sessionToken: string }> {
     const { email, password } = body
     const user = await this.sharedUserRepo.findUniqueIncludeRolePermissions({ email })
     if (!user) {
@@ -85,11 +85,14 @@ export class AuthRepo {
       roleId: user.role.id
     })
     return {
-      sessionToken
+      sessionToken,
+      ...user
     }
   }
 
-  async register(body: Omit<RegisterBodyType, 'otp' | 'confirmPassword'>): Promise<RegisterResType> {
+  async register(
+    body: Omit<RegisterBodyType, 'otp' | 'confirmPassword'>
+  ): Promise<RegisterResType & { sessionToken: string }> {
     const { email, password, fullName } = body
     const hashedPassword = await this.hashingService.hash(password)
     const roleId = await this.sharedRoleRepo.getStudentRoleId()
@@ -101,13 +104,18 @@ export class AuthRepo {
         roleId
       }
     })
+    const userWithRole = await this.sharedUserRepo.findUniqueIncludeRolePermissions({ id: user.id })
+    if (!userWithRole) {
+      throw new NotFoundException('Không tìm thấy tài khoản')
+    }
     const sessionToken = await this.createSessionToken({
       userId: user.id,
       roleName: RoleName.STUDENT,
       roleId
     })
     return {
-      sessionToken
+      sessionToken,
+      ...userWithRole
     }
   }
 

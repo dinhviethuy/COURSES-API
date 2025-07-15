@@ -4,12 +4,13 @@ import {
   CreateCourseBodyDTO,
   CreateCourseResDTO,
   GetCourseDetailResDTOForAdmin,
-  GetCourseParamsDTO,
+  GetCourseParamsIdDTO,
   GetManageCoursesQueryDTO,
   ListCoursesResDTO,
   ReorderChaptersAndLessonsBodyDTO,
   UpdateCourseBodyDTO,
-  UpdateCourseResDTO
+  UpdateCourseResDTO,
+  ValidateSlugBodyDTO
 } from 'src/routes/course/course.dto'
 import { ManageCourseService } from 'src/routes/course/manage-course.service'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
@@ -30,7 +31,7 @@ export class ManageCourseController {
   @Get(':courseId')
   @MessageRes('Lấy chi tiết khóa học thành công')
   @ZodSerializerDto(GetCourseDetailResDTOForAdmin)
-  async getCourseDetail(@Param() param: GetCourseParamsDTO) {
+  async getCourseDetail(@Param() param: GetCourseParamsIdDTO) {
     return this.manageCourseService.getCourseDetailForAdmin(param.courseId)
   }
 
@@ -53,7 +54,7 @@ export class ManageCourseController {
   @MessageRes('Cập nhật khóa học thành công')
   @ZodSerializerDto(UpdateCourseResDTO)
   async updateCourse(
-    @Param() param: GetCourseParamsDTO,
+    @Param() param: GetCourseParamsIdDTO,
     @Body() body: UpdateCourseBodyDTO,
     @ActiveUser('userId') userId: number
   ) {
@@ -75,7 +76,7 @@ export class ManageCourseController {
   @Patch(':courseId/reorder-full')
   @MessageRes('Sắp xếp lại khóa học thành công')
   async reorderChaptersAndLessons(
-    @Param() param: GetCourseParamsDTO,
+    @Param() param: GetCourseParamsIdDTO,
     @Body() body: ReorderChaptersAndLessonsBodyDTO,
     @ActiveUser('userId') userId: number
   ) {
@@ -88,10 +89,16 @@ export class ManageCourseController {
 
   @Delete(':courseId')
   @MessageRes('Xóa khóa học thành công')
-  async deleteCourse(@Param() param: GetCourseParamsDTO, @ActiveUser('userId') userId: number) {
+  async deleteCourse(@Param() param: GetCourseParamsIdDTO, @ActiveUser('userId') userId: number) {
     return this.manageCourseService.deleteCourse({
       courseId: param.courseId,
       deletedById: userId
     })
+  }
+
+  @Post('validate-slug')
+  @MessageRes('Kiểm tra slug khóa học thành công')
+  async validateSlug(@Body() body: ValidateSlugBodyDTO) {
+    return this.manageCourseService.validateSlug(body)
   }
 }

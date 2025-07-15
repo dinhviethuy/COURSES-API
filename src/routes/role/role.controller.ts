@@ -23,7 +23,12 @@ export class RoleController {
   list(@Query() query: GetRolesQueryDTO) {
     return this.roleService.list({
       page: query.page,
-      limit: query.limit
+      limit: query.limit,
+      orderBy: query.orderBy,
+      sortBy: query.sortBy,
+      isActive: query.isActive,
+      getAll: query.getAll,
+      search: query.search
     })
   }
 

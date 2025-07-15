@@ -1,7 +1,10 @@
 export const SortBy = {
   Price: 'price',
   CreatedAt: 'createdAt',
-  Sale: 'sale'
+  Sale: 'sale',
+  FullName: 'fullName',
+  Email: 'email',
+  Name: 'name'  
 } as const
 
 export const OrderBy = {

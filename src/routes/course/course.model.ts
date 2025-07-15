@@ -2,6 +2,7 @@ import { LessonSchema } from 'src/routes/lesson/lesson.model'
 import { CourseType } from 'src/shared/constants/course.constant'
 import { OrderBy, SortBy } from 'src/shared/constants/other.constant'
 import { ChapterSchema } from 'src/shared/models/shared-chapter.model'
+import { UserSchema } from 'src/shared/models/shared-user.model'
 import { CourseSchema } from 'src/shared/models/shrared-course.model'
 import { z } from 'zod'
 
@@ -60,7 +61,7 @@ export const GetCourseDetailResSchema = CourseSchema.pick({
   image: true,
   video: true,
   courseType: true,
-  benefits: true
+  benefits: true,
 }).extend({
   duration: z.number().min(0).default(0),
   chapters: z.array(
@@ -88,7 +89,11 @@ export const GetCourseDetailResSchema = CourseSchema.pick({
       slug: true,
       courseType: true
     })
-  )
+  ),
+  createdBy: UserSchema.pick({
+    id: true,
+    fullName: true
+  }).nullable()
 })
 
 export const GetCourseDetailResSchemaForAdmin = CourseSchema.pick({
@@ -135,7 +140,11 @@ export const GetCourseDetailResSchemaForAdmin = CourseSchema.pick({
       slug: true,
       courseType: true
     })
-  )
+  ),
+  createdBy: UserSchema.pick({
+    id: true,
+    fullName: true
+  }).nullable()
 })
 
 export const CreateCourseBodySchema = CourseSchema.pick({
@@ -177,8 +186,12 @@ export const UpdateCourseBodySchema = CreateCourseBodySchema
 
 export const UpdateCourseResSchema = CreateCourseResSchema
 
-export const GetCourseParamsSchema = z.object({
+export const GetCourseParamsIdSchema = z.object({
   courseId: z.coerce.number().int().positive()
+})
+
+export const GetCourseParamsSlugSchema = z.object({
+  slug: z.string().min(1)
 })
 
 export const ReorderChaptersAndLessonsBodySchema = z
@@ -222,14 +235,20 @@ export const ReorderChaptersAndLessonsBodySchema = z
     }
   })
 
+export const ValidateSlugBodySchema = z.object({
+  slug: z.string().min(1)
+})
+
 export type GetCourseDetailResType = z.infer<typeof GetCourseDetailResSchema>
 export type CreateCourseBodyType = z.infer<typeof CreateCourseBodySchema>
 export type CreateCourseResType = z.infer<typeof CreateCourseResSchema>
 export type UpdateCourseBodyType = z.infer<typeof UpdateCourseBodySchema>
 export type UpdateCourseResType = z.infer<typeof UpdateCourseResSchema>
-export type GetCourseParamsType = z.infer<typeof GetCourseParamsSchema>
+export type GetCourseParamsIdType = z.infer<typeof GetCourseParamsIdSchema>
+export type GetCourseParamsSlugType = z.infer<typeof GetCourseParamsSlugSchema>
 export type ListCoursesResType = z.infer<typeof ListCoursesResSchema>
 export type GetCoursesQueryType = z.infer<typeof GetCoursesQuerySchema>
 export type GetManageCoursesQueryType = z.infer<typeof GetManageCoursesQuerySchema>
 export type ReorderChaptersAndLessonsBodyType = z.infer<typeof ReorderChaptersAndLessonsBodySchema>
 export type GetCourseDetailResTypeForAdmin = z.infer<typeof GetCourseDetailResSchemaForAdmin>
+export type ValidateSlugBodyType = z.infer<typeof ValidateSlugBodySchema>

@@ -20,14 +20,10 @@ import { PrismaService } from 'src/shared/services/prisma.service'
 export class CourseRepo {
   constructor(private readonly prismaService: PrismaService) {}
 
-  /**
-   * API dành cho client
-   * Lấy chi tiết khóa học
-   */
-  async getCourseDetail(courseId: number): Promise<GetCourseDetailResType | null> {
-    const course = await this.prismaService.course.findUnique({
+  private getDetail(where: {id: number} | {slug: string}) {
+    return this.prismaService.course.findFirst({
       where: {
-        id: courseId,
+        ...where,
         deletedAt: null,
         isDraft: false
       },
@@ -87,9 +83,23 @@ export class CourseRepo {
           orderBy: {
             order: OrderBy.Asc
           }
+        },
+        createdBy: {
+          select: {
+            id: true,
+            fullName: true,
+          }
         }
       }
     })
+  }
+
+  /**
+   * API dành cho client
+   * Lấy chi tiết khóa học
+   */
+  async getCourseDetail(where: {id: number} | {slug: string}): Promise<GetCourseDetailResType | null> {
+    const course = await this.getDetail(where)
     if (!course) {
       return null
     }
@@ -244,6 +254,12 @@ export class CourseRepo {
           },
           orderBy: {
             order: OrderBy.Asc
+          }
+        },
+        createdBy: {
+          select: {
+            id: true,
+            fullName: true
           }
         }
       }
@@ -538,5 +554,14 @@ export class CourseRepo {
     }
 
     await this.prismaService.$transaction(updates)
+  }
+
+  async validateSlug(slug: string): Promise<CourseTypeModel | null> {
+    return this.prismaService.course.findFirst({
+      where: {
+        slug,
+        deletedAt: null
+      }
+    })
   }
 }

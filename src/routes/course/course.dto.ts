@@ -4,13 +4,15 @@ import {
   CreateCourseResSchema,
   GetCourseDetailResSchema,
   GetCourseDetailResSchemaForAdmin,
-  GetCourseParamsSchema,
+  GetCourseParamsIdSchema,
+  GetCourseParamsSlugSchema,
   GetCoursesQuerySchema,
   GetManageCoursesQuerySchema,
   ListCoursesResSchema,
   ReorderChaptersAndLessonsBodySchema,
   UpdateCourseBodySchema,
-  UpdateCourseResSchema
+  UpdateCourseResSchema,
+  ValidateSlugBodySchema
 } from 'src/routes/course/course.model'
 
 export class GetCourseDetailResDTO extends createZodDto(GetCourseDetailResSchema) {}
@@ -25,7 +27,11 @@ export class UpdateCourseBodyDTO extends createZodDto(UpdateCourseBodySchema) {}
 
 export class UpdateCourseResDTO extends createZodDto(UpdateCourseResSchema) {}
 
-export class GetCourseParamsDTO extends createZodDto(GetCourseParamsSchema) {}
+export class GetCourseParamsIdDTO extends createZodDto(GetCourseParamsIdSchema) {}
+
+export class ValidateSlugBodyDTO extends createZodDto(ValidateSlugBodySchema) {}
+
+export class GetCourseParamsSlugDTO extends createZodDto(GetCourseParamsSlugSchema) {}
 
 export class ListCoursesResDTO extends createZodDto(ListCoursesResSchema) {}
 

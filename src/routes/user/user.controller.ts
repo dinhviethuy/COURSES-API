@@ -24,7 +24,13 @@ export class UserController {
   list(@Query() query: GetUsersQueryDTO) {
     return this.userService.list({
       limit: query.limit,
-      page: query.page
+      page: query.page,
+      orderBy: query.orderBy,
+      sortBy: query.sortBy,
+      search: query.search,
+      status: query.status,
+      roleId: query.roleId,
+      getAll: query.getAll
     })
   }
 

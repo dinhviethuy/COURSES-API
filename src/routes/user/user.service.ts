@@ -118,6 +118,10 @@ export class UserService {
         })
       ])
 
+      if (data.password) {
+        data.password = await this.hashingService.hash(data.password)
+      }
+
       const updatedUser = await this.sharedUserRepository.update(
         {
           id

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { Prisma } from '@prisma/client'
 import {
   CreateRoleBodyType,
   GetRolesQueryType,
@@ -6,6 +7,7 @@ import {
   RoleWithPermissionsType,
   UpdateRoleBodyType
 } from 'src/routes/role/role.model'
+import { SortBy } from 'src/shared/constants/other.constant'
 import { RoleType } from 'src/shared/models/shared-role.model'
 import { PrismaService } from 'src/shared/services/prisma.service'
 
@@ -13,29 +15,53 @@ import { PrismaService } from 'src/shared/services/prisma.service'
 export class RoleRepo {
   constructor(private readonly prismaService: PrismaService) {}
 
+  private generateFilter(pagination: GetRolesQueryType) {
+    const { page, limit, orderBy, sortBy, isActive, getAll, search } = pagination
+    const skip = limit * (page - 1)
+    const take = limit
+    const where: Prisma.RoleWhereInput = {
+      deletedAt: null
+    }
+    if (isActive) {
+      where.isActive = isActive
+    }
+    if (search) {
+      where.name = { contains: search, mode: 'insensitive' }
+    }
+    let caculatedOrderBy: Prisma.RoleOrderByWithRelationInput | Prisma.RoleOrderByWithRelationInput[] = {
+      createdAt: orderBy
+    }
+    if (sortBy === SortBy.Name) {
+      caculatedOrderBy = {
+        name: orderBy
+      }
+    }
+    return {
+      skip,
+      take,
+      where,
+      orderBy: caculatedOrderBy
+    }
+  }
+
   async list(pagination: GetRolesQueryType): Promise<GetRolesResType> {
-    const skip = pagination.limit * (pagination.page - 1)
-    const take = pagination.limit
+    const { skip, take, where, orderBy } = this.generateFilter(pagination)
     const [totalItems, roles] = await Promise.all([
       this.prismaService.role.count({
-        where: {
-          deletedAt: null
-        }
+        where
       }),
       this.prismaService.role.findMany({
-        skip,
-        take,
-        where: {
-          deletedAt: null
-        }
+        ...(!pagination.getAll && { skip, take }),
+        where,
+        orderBy
       })
     ])
     return {
       roles,
       totalItems,
       page: pagination.page,
-      limit: pagination.limit,
-      totalPages: Math.ceil(totalItems / pagination.limit)
+      limit: pagination.getAll ? totalItems : pagination.limit,
+      totalPages: pagination.getAll ? 1 : Math.ceil(totalItems / pagination.limit)
     }
   }
 

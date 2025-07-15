@@ -2,7 +2,8 @@ import { Controller, Get, Param, Query } from '@nestjs/common'
 import { ZodSerializerDto } from 'nestjs-zod'
 import {
   GetCourseDetailResDTO,
-  GetCourseParamsDTO,
+  GetCourseParamsIdDTO,
+  GetCourseParamsSlugDTO,
   GetCoursesQueryDTO,
   ListCoursesResDTO
 } from 'src/routes/course/course.dto'
@@ -26,7 +27,15 @@ export class CourseController {
   @IsPublic()
   @MessageRes('Lấy chi tiết khóa học thành công')
   @ZodSerializerDto(GetCourseDetailResDTO)
-  async getCourseDetail(@Param() param: GetCourseParamsDTO) {
-    return this.courseService.getCourseDetail(param.courseId)
+  async getCourseDetail(@Param() param: GetCourseParamsIdDTO) {
+    return this.courseService.getCourseDetail({ id: param.courseId })
+  }
+
+  @Get('slugs/:slug')
+  @IsPublic()
+  @MessageRes('Lấy chi tiết khóa học thành công')
+  @ZodSerializerDto(GetCourseDetailResDTO)
+  async getCourseDetailBySlug(@Param() param: GetCourseParamsSlugDTO) {
+    return this.courseService.getCourseDetail({ slug: param.slug })
   }
 }

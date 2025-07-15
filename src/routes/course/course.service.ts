@@ -10,9 +10,9 @@ export class CourseService {
     return this.courseRepo.listCourses(query)
   }
 
-  async getCourseDetail(courseId: number) {
+  async getCourseDetail(where: {id: number} | {slug: string}) {
     try {
-      const course = await this.courseRepo.getCourseDetail(courseId)
+      const course = await this.courseRepo.getCourseDetail(where)
       if (!course) {
         throw new NotFoundException('Không tìm thấy khóa học')
       }

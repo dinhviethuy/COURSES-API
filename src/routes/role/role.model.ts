@@ -1,3 +1,4 @@
+import { OrderBy, SortBy } from 'src/shared/constants/other.constant'
 import { PermissionSchema } from 'src/shared/models/shared-permission.model'
 import { RoleSchema } from 'src/shared/models/shared-role.model'
 import { z } from 'zod'
@@ -17,7 +18,26 @@ export const GetRolesResSchema = z.object({
 export const GetRolesQuerySchema = z
   .object({
     page: z.coerce.number().int().positive().default(1),
-    limit: z.coerce.number().int().positive().default(10)
+    limit: z.coerce.number().int().positive().default(10),
+    getAll: z.preprocess((value: any) => {
+      if (typeof value === 'string') {
+        return value.toLowerCase() === 'true'
+      }
+      return false
+    }, z.boolean()).optional(),
+    isActive: z.preprocess((value) => {
+      if (typeof value === 'string') {
+        const lowered = value.trim().toLowerCase()
+        if (lowered === 'true') return true
+        if (lowered === 'false') return false
+        return undefined
+      }
+      if (typeof value === 'boolean') return value
+      return undefined
+    }, z.boolean().optional()),
+    orderBy: z.enum([OrderBy.Asc, OrderBy.Desc]).default(OrderBy.Desc),
+    sortBy: z.enum([SortBy.CreatedAt, SortBy.Name]).default(SortBy.CreatedAt),
+    search: z.string().optional()
   })
   .strict()
 

@@ -1,5 +1,5 @@
 import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common'
-import { CreateCourseBodyType, GetManageCoursesQueryType, UpdateCourseBodyType } from 'src/routes/course/course.model'
+import { CreateCourseBodyType, GetManageCoursesQueryType, UpdateCourseBodyType, ValidateSlugBodyType } from 'src/routes/course/course.model'
 import { CourseRepo } from 'src/routes/course/course.repo'
 import { CourseType } from 'src/shared/constants/course.constant'
 import { isNotFoundPrismaError, isRequiredConnectPrismaError } from 'src/shared/helpers'
@@ -99,5 +99,13 @@ export class ManageCourseService {
       }
       throw new BadRequestException('Lỗi khi sắp xếp lại chương và bài học')
     }
+  }
+
+  async validateSlug(body: ValidateSlugBodyType) {
+    const course = await this.courseRepo.validateSlug(body.slug)
+    if (course) {
+      throw new BadRequestException('Slug đã tồn tại')
+    }
+    return true
   }
 }

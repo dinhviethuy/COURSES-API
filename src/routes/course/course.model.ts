@@ -239,6 +239,26 @@ export const ValidateSlugBodySchema = z.object({
   slug: z.string().min(1)
 })
 
+export const CanAccessCourseBodySchema = z.object({
+  courseId: z.coerce.number().int().positive().optional(),
+  slug: z.string().min(1).optional()
+}).strict().superRefine((data, ctx) => {
+  if (!data.courseId && !data.slug) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Vui lòng cung cấp courseId hoặc slug',
+      path: ['courseId', 'slug']
+    })
+  }
+  if (data.courseId && data.slug) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Không thể cung cấp cả courseId và slug',
+      path: ['courseId', 'slug']
+    })
+  }
+})
+
 export type GetCourseDetailResType = z.infer<typeof GetCourseDetailResSchema>
 export type CreateCourseBodyType = z.infer<typeof CreateCourseBodySchema>
 export type CreateCourseResType = z.infer<typeof CreateCourseResSchema>
@@ -252,3 +272,4 @@ export type GetManageCoursesQueryType = z.infer<typeof GetManageCoursesQuerySche
 export type ReorderChaptersAndLessonsBodyType = z.infer<typeof ReorderChaptersAndLessonsBodySchema>
 export type GetCourseDetailResTypeForAdmin = z.infer<typeof GetCourseDetailResSchemaForAdmin>
 export type ValidateSlugBodyType = z.infer<typeof ValidateSlugBodySchema>
+export type CanAccessCourseBodyType = z.infer<typeof CanAccessCourseBodySchema>

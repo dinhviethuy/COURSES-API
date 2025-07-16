@@ -1,3 +1,4 @@
+import { OrderBy, SortBy } from 'src/shared/constants/other.constant'
 import { CourseSchema } from 'src/shared/models/shrared-course.model'
 import z from 'zod'
 
@@ -23,7 +24,9 @@ export const GetCartParamsSchema = z.object({
 
 export const GetCartQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().positive().default(10)
+  limit: z.coerce.number().int().positive().default(10),
+  orderBy: z.enum([OrderBy.Asc, OrderBy.Desc]).default(OrderBy.Asc),
+  sortBy: z.enum([SortBy.CreatedAt, SortBy.Price]).default(SortBy.CreatedAt)
 })
 
 export const GetListCartResSchema = z.object({

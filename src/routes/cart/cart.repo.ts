@@ -7,17 +7,25 @@ import {
   GetListCartResType
 } from 'src/routes/cart/cart.model'
 import { OrderStatus } from 'src/shared/constants/order.constant'
-import { OrderBy } from 'src/shared/constants/other.constant'
 import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
 export class CartRepo {
   constructor(private readonly prismaService: PrismaService) {}
 
+  private generateFilter(query: GetCartQueryType) {
+    const { orderBy, sortBy, limit, page } = query
+    return {
+      orderBy: {
+        [sortBy]: orderBy
+      },
+      skip: (page - 1) * limit,
+      take: limit
+    }
+  }
+
   async listCart(query: GetCartQueryType, userId: number): Promise<GetListCartResType> {
-    const { page, limit } = query
-    const skip = (page - 1) * limit
-    const take = limit
+    const { skip, take, orderBy } = this.generateFilter(query)
     const [cartItems, totalItems] = await Promise.all([
       this.prismaService.cartItem.findMany({
         where: {
@@ -26,9 +34,7 @@ export class CartRepo {
         },
         skip,
         take,
-        orderBy: {
-          createdAt: OrderBy.Desc
-        },
+        orderBy,
         include: {
           course: {
             select: {
@@ -53,9 +59,9 @@ export class CartRepo {
     return {
       cartItems,
       totalItems,
-      page,
-      limit,
-      totalPages: Math.ceil(totalItems / limit)
+      page: query.page,
+      limit: query.limit,
+      totalPages: Math.ceil(totalItems / query.limit)
     }
   }
 

@@ -1,5 +1,5 @@
-import { HttpException, Injectable, NotFoundException } from '@nestjs/common'
-import { GetCoursesQueryType } from 'src/routes/course/course.model'
+import { ForbiddenException, HttpException, Injectable, NotFoundException } from '@nestjs/common'
+import { CanAccessCourseBodyType, GetCoursesQueryType } from 'src/routes/course/course.model'
 import { CourseRepo } from 'src/routes/course/course.repo'
 
 @Injectable()
@@ -23,5 +23,21 @@ export class CourseService {
       }
       throw new NotFoundException('Không tìm thấy khóa học')
     }
+  }
+
+  async canAccessCourse({
+    where,
+    userId,
+    roleId
+  }: {
+    where:CanAccessCourseBodyType
+    userId: number
+    roleId: number
+  }) {
+    const canAccess = await this.courseRepo.canAccessCourse({ where, userId, roleId })
+    if (!canAccess) {
+      throw new ForbiddenException('Bạn không có quyền truy cập khóa học này')
+    }
+    return canAccess
   }
 }

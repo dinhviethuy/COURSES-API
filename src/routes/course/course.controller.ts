@@ -1,6 +1,7 @@
-import { Controller, Get, Param, Query } from '@nestjs/common'
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common'
 import { ZodSerializerDto } from 'nestjs-zod'
 import {
+  CanAccessCourseBodyDTO,
   GetCourseDetailResDTO,
   GetCourseParamsIdDTO,
   GetCourseParamsSlugDTO,
@@ -8,12 +9,24 @@ import {
   ListCoursesResDTO
 } from 'src/routes/course/course.dto'
 import { CourseService } from 'src/routes/course/course.service'
+import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { IsPublic } from 'src/shared/decorators/auth.decorator'
 import { MessageRes } from 'src/shared/decorators/message.decorator'
+import { SessionTokenPayload } from 'src/shared/types/jwt.type'
 
 @Controller('courses')
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
+
+  @Post()
+  @MessageRes('Kiểm tra quyền truy cập khóa học thành công')
+  canAccessCourse(@Body() body: CanAccessCourseBodyDTO, @ActiveUser() user: SessionTokenPayload) {
+    return this.courseService.canAccessCourse({
+      where: body,
+      userId: user.userId,
+      roleId: user.roleId
+    })
+  }
 
   @Get()
   @IsPublic()

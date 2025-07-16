@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 import {
+  CanAccessCourseBodyType,
   CreateCourseBodyType,
   CreateCourseResType,
   GetCourseDetailResType,
@@ -11,14 +12,16 @@ import {
   UpdateCourseBodyType,
   UpdateCourseResType
 } from 'src/routes/course/course.model'
+import { CourseEnrollmentStatus } from 'src/shared/constants/course-enrollment.constant'
 import { CourseType } from 'src/shared/constants/course.constant'
 import { OrderBy, SortBy } from 'src/shared/constants/other.constant'
 import { CourseType as CourseTypeModel } from 'src/shared/models/shrared-course.model'
+import { SharedRoleRepository } from 'src/shared/repositories/shared-role.repo'
 import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
 export class CourseRepo {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(private readonly prismaService: PrismaService, private readonly sharedRoleRepo: SharedRoleRepository) {}
 
   private getDetail(where: {id: number} | {slug: string}) {
     return this.prismaService.course.findFirst({
@@ -563,5 +566,38 @@ export class CourseRepo {
         deletedAt: null
       }
     })
+  }
+
+  async canAccessCourse({
+    where,
+    userId,
+    roleId
+  }: {
+    where: CanAccessCourseBodyType
+    userId: number
+    roleId: number
+  }): Promise<boolean> {
+    const whereClause = where.courseId ? { id: where.courseId } : { slug: where.slug }
+    const [course, adminRoleId, teacherRoleId] = await Promise.all([
+      this.prismaService.course.findFirst({
+        where: {
+          ...whereClause,
+          deletedAt: null,
+          isDraft: false,
+          courseEnrollments: {
+            some: {
+              userId,
+              status: CourseEnrollmentStatus.ACTIVE
+            }
+          }
+        }
+      }),
+      this.sharedRoleRepo.getAdminRoleId(),
+      this.sharedRoleRepo.getTeacherRoleId(),
+    ])
+    if (!course && roleId !== adminRoleId && roleId !== teacherRoleId) {
+      return false
+    }
+    return true
   }
 }

@@ -1,5 +1,6 @@
 import { createZodDto } from 'nestjs-zod'
 import {
+  CanAccessCourseBodySchema,
   CreateCourseBodySchema,
   CreateCourseResSchema,
   GetCourseDetailResSchema,
@@ -40,3 +41,5 @@ export class GetCoursesQueryDTO extends createZodDto(GetCoursesQuerySchema) {}
 export class GetManageCoursesQueryDTO extends createZodDto(GetManageCoursesQuerySchema) {}
 
 export class ReorderChaptersAndLessonsBodyDTO extends createZodDto(ReorderChaptersAndLessonsBodySchema) {}
+
+export class CanAccessCourseBodyDTO extends createZodDto(CanAccessCourseBodySchema) {}

@@ -55,7 +55,16 @@ export const GetOrderListResSchema = z.object({
 export const GetOrderListQuerySchema = z.object({
   page: z.number().int().positive().default(1),
   limit: z.number().int().positive().default(10),
-  status: z.enum([OrderStatus.CANCELLED, OrderStatus.PAID, OrderStatus.PENDING]).optional()
+  status: z.preprocess((value) => {
+    if (typeof value === 'string') {
+      const lowered = value.trim().toLowerCase()
+      if (lowered === OrderStatus.CANCELLED.toLowerCase()) return OrderStatus.CANCELLED
+      if (lowered === OrderStatus.PAID.toLowerCase()) return OrderStatus.PAID
+      if (lowered === OrderStatus.PENDING.toLowerCase()) return OrderStatus.PENDING
+      return undefined
+    }
+    return undefined
+  }, z.enum([OrderStatus.CANCELLED, OrderStatus.PAID, OrderStatus.PENDING]).optional())
 })
 
 export const GetOrderDetailResSchema = OrderSchema.pick({

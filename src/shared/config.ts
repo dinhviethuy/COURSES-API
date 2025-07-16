@@ -26,7 +26,9 @@ const configSchema = z.object({
   RESEND_API_KEY: z.string(),
   DOMAIN: z.string(),
   URL_ENDPOINT: z.string(),
-  REDIS_URL: z.string()
+  REDIS_URL: z.string(),
+  CLIENT_URL: z.string(),
+  NODE_ENV: z.enum(['development', 'production']).default('development')
 })
 
 const configServer = configSchema.safeParse(process.env)

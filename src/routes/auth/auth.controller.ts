@@ -10,6 +10,7 @@ import {
   SendOTPBodyDTO
 } from 'src/routes/auth/auth.dto'
 import { AuthService } from 'src/routes/auth/auth.service'
+import { envConfig } from 'src/shared/config'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { IsPublic } from 'src/shared/decorators/auth.decorator'
 import { MessageRes } from 'src/shared/decorators/message.decorator'
@@ -28,7 +29,9 @@ export class AuthController {
     const expiresAt = new Date(exp * 1000)
     res.cookie('sessionToken', sessionToken, {
       httpOnly: true,
-      secure: true,
+      secure: envConfig.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
       expires: expiresAt
     })
   }

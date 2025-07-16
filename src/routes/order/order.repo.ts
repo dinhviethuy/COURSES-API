@@ -62,7 +62,14 @@ export class OrderRepo {
         userId
       },
       include: {
-        snapshots: true
+        snapshots: true,
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          }
+        }
       }
     })
   }

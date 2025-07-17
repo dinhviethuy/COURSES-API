@@ -1,4 +1,6 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common'
+import { Response } from 'express'
+import { envConfig } from 'src/shared/config'
 import { REQUEST_ROLE_PERMISSIONS, REQUEST_USER_KEY } from 'src/shared/constants/auth.constant'
 import { HTTPMethod } from 'src/shared/constants/role.constant'
 import { PrismaService } from 'src/shared/services/prisma.service'
@@ -13,14 +15,15 @@ export class SessionTokenGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest()
+    const request = context.switchToHttp().getRequest<Request>()
+    const response = context.switchToHttp().getResponse<Response>()
     const sessionToken = this.extractTokenFromCookie(request)
-    const payload = await this.validateSessionToken(sessionToken)
+    const payload = await this.validateSessionToken(sessionToken, response)
     request[REQUEST_USER_KEY] = {
-      ...payload,
-      sessionToken
+      ...payload.payload,
+      sessionToken: payload.sessionToken
     }
-    await this.validateUserPermission(payload, request)
+    await this.validateUserPermission(payload.payload, request)
     return true
   }
 
@@ -32,7 +35,7 @@ export class SessionTokenGuard implements CanActivate {
     return sessionToken
   }
 
-  private async validateSessionToken(sessionToken: string) {
+  private async validateSessionToken(sessionToken: string, response: Response) {
     try {
       const [payload, sessionTokenInDb] = await Promise.all([
         this.tokenService.verifySessionToken(sessionToken),
@@ -45,7 +48,41 @@ export class SessionTokenGuard implements CanActivate {
       if (!sessionTokenInDb) {
         throw new UnauthorizedException('Session token không hợp lệ')
       }
-      return payload
+      if (sessionTokenInDb.expiresAt < new Date()) {
+        throw new UnauthorizedException('Session token đã hết hạn')
+      }
+      let payloadRes = payload
+      let sessionTokenRes = sessionToken
+      const timeUseSeconds = payload.exp - payload.iat
+      const timeUsedSeconds = (Date.now() - sessionTokenInDb.createdAt.getTime()) / 1000
+      if (timeUsedSeconds >= timeUseSeconds / 3) {
+        sessionTokenRes = this.tokenService.signSessionToken({
+          roleId: payload.roleId,
+          roleName: payload.roleName, 
+          userId: payload.userId
+        })
+        payloadRes = await this.tokenService.verifySessionToken(sessionTokenRes)
+        await this.prismaService.sessionToken.update({
+          where: {
+            token: sessionToken
+          },
+          data: {
+            token: sessionTokenRes,
+            expiresAt: new Date(payloadRes.exp * 1000)
+          }
+        })
+        response.cookie('sessionToken', sessionTokenRes,  {
+          httpOnly: true,
+          secure: envConfig.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          expires: new Date(payloadRes.exp * 1000)
+        })
+      }
+      return {
+        payload: payloadRes,
+        sessionToken: sessionTokenRes
+      }
     } catch (error) {
       throw new UnauthorizedException('Session token không hợp lệ')
     }

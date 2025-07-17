@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Injectable, UnprocessableEntityException } from '@nestjs/common'
 import { addMilliseconds } from 'date-fns'
 import ms from 'ms'
 import {
@@ -73,11 +73,21 @@ export class AuthRepo {
     const { email, password } = body
     const user = await this.sharedUserRepo.findUniqueIncludeRolePermissions({ email })
     if (!user) {
-      throw new NotFoundException('Email không tồn tại')
+      throw new UnprocessableEntityException([
+        {
+          path: 'email',
+          message: 'Email không tồn tại'
+        }
+      ])
     }
     const isPasswordValid = await this.hashingService.compare(password, user.password)
     if (!isPasswordValid) {
-      throw new BadRequestException('Mật khẩu không hợp lệ')
+      throw new UnprocessableEntityException([
+        {
+          path: 'password',
+          message: 'Mật khẩu không hợp lệ'
+        }
+      ])
     }
     const sessionToken = await this.createSessionToken({
       userId: user.id,
@@ -106,7 +116,12 @@ export class AuthRepo {
     })
     const userWithRole = await this.sharedUserRepo.findUniqueIncludeRolePermissions({ id: user.id })
     if (!userWithRole) {
-      throw new NotFoundException('Không tìm thấy tài khoản')
+      throw new UnprocessableEntityException([
+        {
+          path: 'email',
+          message: 'Email không tồn tại'
+        }
+      ])
     }
     const sessionToken = await this.createSessionToken({
       userId: user.id,
@@ -143,7 +158,12 @@ export class AuthRepo {
       }
     })
     if (!user) {
-      throw new NotFoundException('Email không tồn tại')
+      throw new UnprocessableEntityException([
+        {
+          path: 'email',
+          message: 'Email không tồn tại'
+        }
+      ])
     }
     const hashedNewPassword = await this.hashingService.hash(newPassword)
     return this.prismaService.user.update({
@@ -157,50 +177,17 @@ export class AuthRepo {
     })
   }
 
-  async sessionToken(sessionToken: string) {
-    const sessionTokenInDb = await this.prismaService.sessionToken.findUnique({
-      where: {
-        token: sessionToken
-      },
-      include: {
-        user: {
-          include: {
-            role: true
-          }
-        }
-      }
-    })
-    if (!sessionTokenInDb) {
-      throw new NotFoundException('Session token không tồn tại')
-    }
-    if (sessionTokenInDb.expiresAt < new Date()) {
-      throw new BadRequestException('Session token đã hết hạn')
-    }
-    const newSessionToken = await this.createSessionToken({
-      userId: sessionTokenInDb.userId,
-      roleName: sessionTokenInDb.user.role.name,
-      roleId: sessionTokenInDb.user.role.id
-    })
-    await this.prismaService.sessionToken.delete({
-      where: {
-        token: sessionToken
-      }
-    })
-    return {
-      sessionToken: newSessionToken
-    }
-  }
-
   private async createSessionToken({ userId, roleName, roleId }: SessionTokenPayloadCreate) {
     const sessionToken = this.tokenService.signSessionToken({
       roleId,
       roleName,
       userId
     })
+    const decodedSessionToken = await this.tokenService.verifySessionToken(sessionToken)
     await this.prismaService.sessionToken.create({
       data: {
         token: sessionToken,
-        expiresAt: addMilliseconds(new Date(), Number(ms(envConfig.SESSION_TOKEN_EXPIRES_IN as any))),
+        expiresAt: new Date(decodedSessionToken.exp * 1000),
         userId
       }
     })

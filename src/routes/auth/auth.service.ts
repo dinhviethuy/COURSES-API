@@ -83,8 +83,4 @@ export class AuthService {
     await this.authRepo.changePassword({ email, newPassword })
     return true
   }
-
-  async sessionToken(sessionToken: string) {
-    return this.authRepo.sessionToken(sessionToken)
-  }
 }

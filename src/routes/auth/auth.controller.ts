@@ -87,16 +87,4 @@ export class AuthController {
     return this.authService.forgotPassword(body)
   }
 
-  @Post('session-token')
-  @MessageRes('Lấy session token thành công')
-  @HttpCode(HttpStatus.OK)
-  async sessionToken(
-    @ActiveUser('sessionToken') sessionToken: string,
-    @Body() _: EmptyBodyDTO,
-    @Res({ passthrough: true }) res: Response
-  ) {
-    const { sessionToken: newSessionToken } = await this.authService.sessionToken(sessionToken)
-    await this.setSessionToken(res, newSessionToken)
-    return true
-  }
 }

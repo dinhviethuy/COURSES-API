@@ -58,7 +58,7 @@ export class SessionTokenGuard implements CanActivate {
       if (timeUsedSeconds >= timeUseSeconds / 3) {
         sessionTokenRes = this.tokenService.signSessionToken({
           roleId: payload.roleId,
-          roleName: payload.roleName, 
+          roleName: payload.roleName,
           userId: payload.userId
         })
         payloadRes = await this.tokenService.verifySessionToken(sessionTokenRes)
@@ -71,7 +71,7 @@ export class SessionTokenGuard implements CanActivate {
             expiresAt: new Date(payloadRes.exp * 1000)
           }
         })
-        response.cookie('sessionToken', sessionTokenRes,  {
+        response.cookie('sessionToken', sessionTokenRes, {
           httpOnly: true,
           secure: envConfig.NODE_ENV === 'production',
           sameSite: 'lax',

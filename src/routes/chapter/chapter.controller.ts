@@ -10,6 +10,7 @@ import {
 import { ChapterService } from 'src/routes/chapter/chapter.service'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { MessageRes } from 'src/shared/decorators/message.decorator'
+import { SessionTokenPayload } from 'src/shared/types/jwt.type'
 
 @Controller('chapters')
 export class ChapterController {
@@ -28,14 +29,23 @@ export class ChapterController {
   async updateChapter(
     @Param() param: GetChapterParamsDTO,
     @Body() body: UpdateChaperBodyDTO,
-    @ActiveUser('userId') userId: number
+    @ActiveUser() user: SessionTokenPayload
   ) {
-    return this.chapterService.updateChapter({ chapterId: param.chapterId, data: body, updatedById: userId })
+    return this.chapterService.updateChapter({
+      chapterId: param.chapterId,
+      data: body,
+      updatedById: user.userId,
+      roleId: user.roleId
+    })
   }
 
   @Delete(':chapterId')
   @MessageRes('Xóa chương thành công')
-  async deleteChapter(@Param() param: GetChapterParamsDTO, @ActiveUser('userId') userId: number) {
-    return this.chapterService.deleteChapter({ chapterId: param.chapterId, deletedById: userId })
+  async deleteChapter(@Param() param: GetChapterParamsDTO, @ActiveUser() user: SessionTokenPayload) {
+    return this.chapterService.deleteChapter({
+      chapterId: param.chapterId,
+      deletedById: user.userId,
+      roleId: user.roleId
+    })
   }
 }

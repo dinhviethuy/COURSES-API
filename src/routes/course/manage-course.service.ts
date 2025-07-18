@@ -1,5 +1,10 @@
 import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common'
-import { CreateCourseBodyType, GetManageCoursesQueryType, UpdateCourseBodyType, ValidateSlugBodyType } from 'src/routes/course/course.model'
+import {
+  CreateCourseBodyType,
+  GetManageCoursesQueryType,
+  UpdateCourseBodyType,
+  ValidateSlugBodyType
+} from 'src/routes/course/course.model'
 import { CourseRepo } from 'src/routes/course/course.repo'
 import { CourseType } from 'src/shared/constants/course.constant'
 import { isNotFoundPrismaError, isRequiredConnectPrismaError } from 'src/shared/helpers'
@@ -8,13 +13,13 @@ import { isNotFoundPrismaError, isRequiredConnectPrismaError } from 'src/shared/
 export class ManageCourseService {
   constructor(private readonly courseRepo: CourseRepo) {}
 
-  async listCourses(query: GetManageCoursesQueryType) {
-    return this.courseRepo.listCoursesForAdmin(query)
+  async listCourses({ query, roleId, userId }: { query: GetManageCoursesQueryType; roleId: number; userId: number }) {
+    return this.courseRepo.listCoursesForAdmin({ query, roleId, userId })
   }
 
-  async getCourseDetailForAdmin(courseId: number) {
+  async getCourseDetailForAdmin({ courseId, roleId, userId }: { courseId: number; roleId: number; userId: number }) {
     try {
-      const course = await this.courseRepo.getDetailForAdmin(courseId)
+      const course = await this.courseRepo.getDetailForAdmin({ courseId, roleId, userId })
       if (!course) {
         throw new NotFoundException('Không tìm thấy khóa học')
       }
@@ -47,14 +52,16 @@ export class ManageCourseService {
   async updateCourse({
     courseId,
     data,
-    updatedById
+    updatedById,
+    roleId
   }: {
     courseId: number
     data: UpdateCourseBodyType
     updatedById: number
+    roleId: number
   }) {
     try {
-      const course = await this.courseRepo.updateCourse({ courseId, data, updatedById })
+      const course = await this.courseRepo.updateCourse({ courseId, data, updatedById, roleId })
       return course
     } catch (error) {
       if (isNotFoundPrismaError(error)) {
@@ -65,17 +72,23 @@ export class ManageCourseService {
           throw new BadRequestException('Khóa học con không tồn tại')
         }
       }
+      if (error instanceof HttpException) {
+        throw error
+      }
       throw error
     }
   }
 
-  async deleteCourse({ courseId, deletedById }: { courseId: number; deletedById: number }) {
+  async deleteCourse({ courseId, deletedById, roleId }: { courseId: number; deletedById: number; roleId: number }) {
     try {
-      await this.courseRepo.deleteCourse({ courseId, deletedById })
-      return {}
+      await this.courseRepo.deleteCourse({ courseId, deletedById, roleId })
+      return true
     } catch (error) {
       if (isNotFoundPrismaError(error)) {
         throw new NotFoundException('Không tìm thấy khóa học')
+      }
+      if (error instanceof HttpException) {
+        throw error
       }
       throw error
     }
@@ -84,14 +97,16 @@ export class ManageCourseService {
   async reorderChaptersAndLessons({
     courseId,
     chapters,
-    updatedById
+    updatedById,
+    roleId
   }: {
     courseId: number
     chapters: { id: number; order: number; lessons: { id: number; order: number }[] }[]
     updatedById: number
+    roleId: number
   }) {
     try {
-      await this.courseRepo.reorderChaptersAndLessons({ courseId, chapters, updatedById })
+      await this.courseRepo.reorderChaptersAndLessons({ courseId, chapters, updatedById, roleId })
       return true
     } catch (error) {
       if (error instanceof HttpException) {

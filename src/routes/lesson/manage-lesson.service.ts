@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  NotAcceptableException,
+  NotFoundException
+} from '@nestjs/common'
 import { CreateLessonBodyType, UpdateLessonBodyType } from 'src/routes/lesson/lesson.model'
 import { LessonRepo } from 'src/routes/lesson/lesson.repo'
 import {
@@ -11,8 +17,8 @@ import {
 export class ManageLessonService {
   constructor(private readonly lessonRepo: LessonRepo) {}
 
-  async getDetail(lessonId: number) {
-    const lesson = await this.lessonRepo.getDetailAdmin(lessonId)
+  async getDetail({ lessonId, roleId, userId }: { lessonId: number; roleId: number; userId: number }) {
+    const lesson = await this.lessonRepo.getDetailAdmin({ lessonId, roleId, userId })
     if (!lesson) {
       throw new NotFoundException('Bài học không tồn tại')
     }
@@ -34,9 +40,19 @@ export class ManageLessonService {
     }
   }
 
-  async update({ data, updatedById, lessonId }: { data: UpdateLessonBodyType; updatedById: number; lessonId: number }) {
+  async update({
+    data,
+    updatedById,
+    lessonId,
+    roleId
+  }: {
+    data: UpdateLessonBodyType
+    updatedById: number
+    lessonId: number
+    roleId: number
+  }) {
     try {
-      const lesson = await this.lessonRepo.update({ data, updatedById, lessonId })
+      const lesson = await this.lessonRepo.update({ data, updatedById, lessonId, roleId })
       return lesson
     } catch (error) {
       if (isForeignKeyConstraintPrismaError(error)) {
@@ -48,13 +64,16 @@ export class ManageLessonService {
       if (isUniqueConstraintPrismaError(error)) {
         throw new NotAcceptableException('Bài học đã tồn tại')
       }
+      if (error instanceof HttpException) {
+        throw error
+      }
       throw new BadRequestException('Lỗi khi cập nhật bài học')
     }
   }
 
-  async delete({ lessonId, deletedById }: { lessonId: number; deletedById: number }) {
+  async delete({ lessonId, deletedById, roleId }: { lessonId: number; deletedById: number; roleId: number }) {
     try {
-      await this.lessonRepo.delete({ lessonId, deletedById })
+      await this.lessonRepo.delete({ lessonId, deletedById, roleId })
       return true
     } catch (error) {
       if (isNotFoundPrismaError(error)) {

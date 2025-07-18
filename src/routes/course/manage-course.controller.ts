@@ -16,6 +16,7 @@ import { ManageCourseService } from 'src/routes/course/manage-course.service'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { MessageRes } from 'src/shared/decorators/message.decorator'
 import { isUniqueConstraintPrismaError } from 'src/shared/helpers'
+import { SessionTokenPayload } from 'src/shared/types/jwt.type'
 
 @Controller('manage-courses')
 export class ManageCourseController {
@@ -24,15 +25,23 @@ export class ManageCourseController {
   @Get()
   @MessageRes('Lấy danh sách khóa học thành công')
   @ZodSerializerDto(ListCoursesResDTO)
-  async listCourses(@Query() query: GetManageCoursesQueryDTO) {
-    return this.manageCourseService.listCourses(query)
+  async listCourses(@Query() query: GetManageCoursesQueryDTO, @ActiveUser() user: SessionTokenPayload) {
+    return this.manageCourseService.listCourses({
+      query,
+      roleId: user.roleId,
+      userId: user.userId
+    })
   }
 
   @Get(':courseId')
   @MessageRes('Lấy chi tiết khóa học thành công')
   @ZodSerializerDto(GetCourseDetailResDTOForAdmin)
-  async getCourseDetail(@Param() param: GetCourseParamsIdDTO) {
-    return this.manageCourseService.getCourseDetailForAdmin(param.courseId)
+  async getCourseDetail(@Param() param: GetCourseParamsIdDTO, @ActiveUser() user: SessionTokenPayload) {
+    return this.manageCourseService.getCourseDetailForAdmin({
+      courseId: param.courseId,
+      roleId: user.roleId,
+      userId: user.userId
+    })
   }
 
   @Post()
@@ -56,13 +65,14 @@ export class ManageCourseController {
   async updateCourse(
     @Param() param: GetCourseParamsIdDTO,
     @Body() body: UpdateCourseBodyDTO,
-    @ActiveUser('userId') userId: number
+    @ActiveUser() user: SessionTokenPayload
   ) {
     try {
       const course = await this.manageCourseService.updateCourse({
         courseId: param.courseId,
         data: body,
-        updatedById: userId
+        updatedById: user.userId,
+        roleId: user.roleId
       })
       return course
     } catch (error) {
@@ -78,21 +88,23 @@ export class ManageCourseController {
   async reorderChaptersAndLessons(
     @Param() param: GetCourseParamsIdDTO,
     @Body() body: ReorderChaptersAndLessonsBodyDTO,
-    @ActiveUser('userId') userId: number
+    @ActiveUser() user: SessionTokenPayload
   ) {
     return this.manageCourseService.reorderChaptersAndLessons({
       courseId: param.courseId,
       chapters: body.chapters,
-      updatedById: userId
+      updatedById: user.userId,
+      roleId: user.roleId
     })
   }
 
   @Delete(':courseId')
   @MessageRes('Xóa khóa học thành công')
-  async deleteCourse(@Param() param: GetCourseParamsIdDTO, @ActiveUser('userId') userId: number) {
+  async deleteCourse(@Param() param: GetCourseParamsIdDTO, @ActiveUser() user: SessionTokenPayload) {
     return this.manageCourseService.deleteCourse({
       courseId: param.courseId,
-      deletedById: userId
+      deletedById: user.userId,
+      roleId: user.roleId
     })
   }
 

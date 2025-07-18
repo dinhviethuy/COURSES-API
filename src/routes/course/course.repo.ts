@@ -21,9 +21,17 @@ import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
 export class CourseRepo {
-  constructor(private readonly prismaService: PrismaService, private readonly sharedRoleRepo: SharedRoleRepository) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly sharedRoleRepo: SharedRoleRepository
+  ) {}
 
-  private getDetail(where: {id: number} | {slug: string}) {
+  private async checkForAdmin(roleId: number) {
+    const adminRoleId = await this.sharedRoleRepo.getAdminRoleId()
+    return roleId === adminRoleId
+  }
+
+  private getDetail(where: { id: number } | { slug: string }) {
     return this.prismaService.course.findFirst({
       where: {
         ...where,
@@ -42,6 +50,7 @@ export class CourseRepo {
         image: true,
         video: true,
         benefits: true,
+        updatedAt: true,
         comboChildren: {
           select: {
             id: true,
@@ -90,7 +99,7 @@ export class CourseRepo {
         createdBy: {
           select: {
             id: true,
-            fullName: true,
+            fullName: true
           }
         }
       }
@@ -101,7 +110,7 @@ export class CourseRepo {
    * API dành cho client
    * Lấy chi tiết khóa học
    */
-  async getCourseDetail(where: {id: number} | {slug: string}): Promise<GetCourseDetailResType | null> {
+  async getCourseDetail(where: { id: number } | { slug: string }): Promise<GetCourseDetailResType | null> {
     const course = await this.getDetail(where)
     if (!course) {
       return null
@@ -121,13 +130,25 @@ export class CourseRepo {
     }
   }
 
-  private generateFilter(query: GetCoursesQueryType | GetManageCoursesQueryType, isAdmin: boolean) {
+  private async generateFilter({
+    query,
+    isAdmin,
+    roleId,
+    userId
+  }: {
+    query: GetCoursesQueryType | GetManageCoursesQueryType
+    isAdmin: boolean
+    roleId?: number
+    userId?: number
+  }) {
     const { page, limit, search, minPrice, maxPrice, orderBy, sortBy } = query
     const skip = (page - 1) * limit
     const take = limit
+    const isAdminOrCreator = roleId ? await this.checkForAdmin(roleId) : true
     const where: Prisma.CourseWhereInput = {
       deletedAt: null,
-      isDraft: isAdmin ? (query as GetManageCoursesQueryType)?.isDraft : false
+      isDraft: isAdmin ? (query as GetManageCoursesQueryType)?.isDraft : false,
+      createdById: isAdminOrCreator ? undefined : userId
     }
     if (search) {
       where.title = {
@@ -145,7 +166,7 @@ export class CourseRepo {
         lte: maxPrice
       }
     }
-    if (isAdmin) {
+    if (isAdmin && isAdminOrCreator) {
       where.createdById = (query as GetManageCoursesQueryType)?.createdById
     }
     let caculatedOrderBy: Prisma.CourseOrderByWithRelationInput | Prisma.CourseOrderByWithRelationInput[] = {
@@ -172,7 +193,12 @@ export class CourseRepo {
   }
 
   async listCourses(query: GetCoursesQueryType): Promise<ListCoursesResType> {
-    const { where, skip, take, orderBy, limit, page } = this.generateFilter(query, false)
+    const { where, skip, take, orderBy, limit, page } = await this.generateFilter({
+      query,
+      isAdmin: false,
+      roleId: 0,
+      userId: 0
+    })
     const [courses, totalItems] = await Promise.all([
       this.prismaService.course.findMany({
         where,
@@ -193,8 +219,21 @@ export class CourseRepo {
     }
   }
 
-  async listCoursesForAdmin(query: GetManageCoursesQueryType): Promise<ListCoursesResType> {
-    const { where, skip, take, orderBy, limit, page } = this.generateFilter(query, true)
+  async listCoursesForAdmin({
+    query,
+    roleId,
+    userId
+  }: {
+    query: GetManageCoursesQueryType
+    roleId: number
+    userId: number
+  }): Promise<ListCoursesResType> {
+    const { where, skip, take, orderBy, limit, page } = await this.generateFilter({
+      query,
+      isAdmin: true,
+      roleId,
+      userId
+    })
     const [courses, totalItems] = await Promise.all([
       this.prismaService.course.findMany({
         where,
@@ -219,11 +258,21 @@ export class CourseRepo {
    * API dành cho admin
    * Lấy chi tiết khóa học
    */
-  async getDetailForAdmin(courseId: number): Promise<GetCourseDetailResTypeForAdmin | null> {
+  async getDetailForAdmin({
+    courseId,
+    roleId,
+    userId
+  }: {
+    courseId: number
+    roleId: number
+    userId: number
+  }): Promise<GetCourseDetailResTypeForAdmin | null> {
+    const isAdminOrCreator = await this.checkForAdmin(roleId)
     const course = await this.prismaService.course.findUnique({
       where: {
         id: courseId,
-        deletedAt: null
+        deletedAt: null,
+        createdById: isAdminOrCreator ? undefined : userId
       },
       include: {
         comboChildren: {
@@ -354,17 +403,21 @@ export class CourseRepo {
   async updateCourse({
     courseId,
     data,
-    updatedById
+    updatedById,
+    roleId
   }: {
     courseId: number
     data: UpdateCourseBodyType
     updatedById: number
+    roleId: number
   }): Promise<UpdateCourseResType> {
     const { courseIds, ...rest } = data
+    const isAdminOrCreator = await this.checkForAdmin(roleId)
     const course = await this.prismaService.course.findUnique({
       where: {
         id: courseId,
-        deletedAt: null
+        deletedAt: null,
+        createdById: isAdminOrCreator ? undefined : updatedById
       },
       select: {
         courseType: true,
@@ -379,7 +432,7 @@ export class CourseRepo {
       }
     })
     if (!course) {
-      throw new NotFoundException('Course not found')
+      throw new NotFoundException('Không tìm thấy khóa học')
     }
     if (course.courseType !== data.courseType) {
       throw new BadRequestException('Không thể chuyển đổi loại khóa học')
@@ -450,22 +503,29 @@ export class CourseRepo {
   async deleteCourse(
     {
       courseId,
-      deletedById
+      deletedById,
+      roleId
     }: {
       courseId: number
       deletedById: number
+      roleId: number
     },
     isHard?: boolean
   ): Promise<CourseTypeModel | null> {
+    const isAdminOrCreator = await this.checkForAdmin(roleId)
     if (isHard) {
       return this.prismaService.course.delete({
-        where: { id: courseId }
+        where: {
+          id: courseId,
+          createdById: isAdminOrCreator ? undefined : deletedById
+        }
       })
     } else {
       return this.prismaService.course.update({
         where: {
           id: courseId,
-          deletedAt: null
+          deletedAt: null,
+          createdById: isAdminOrCreator ? undefined : deletedById
         },
         data: {
           deletedAt: new Date(),
@@ -478,18 +538,25 @@ export class CourseRepo {
   async reorderChaptersAndLessons({
     courseId,
     chapters,
-    updatedById
+    updatedById,
+    roleId
   }: {
     courseId: number
     chapters: { id: number; order: number; lessons: { id: number; order: number }[] }[]
     updatedById: number
+    roleId: number
   }) {
+    const isAdminOrCreator = await this.checkForAdmin(roleId)
     const updates: Prisma.PrismaPromise<any>[] = []
     // lấy danh sách chương và bài học từ db
     const chaptersInDb = await this.prismaService.chapter.findMany({
       where: {
         courseId,
-        deletedAt: null
+        deletedAt: null,
+        course: {
+          createdById: isAdminOrCreator ? undefined : updatedById,
+          deletedAt: null
+        }
       },
       select: {
         id: true,
@@ -593,7 +660,7 @@ export class CourseRepo {
         }
       }),
       this.sharedRoleRepo.getAdminRoleId(),
-      this.sharedRoleRepo.getTeacherRoleId(),
+      this.sharedRoleRepo.getTeacherRoleId()
     ])
     if (!course && roleId !== adminRoleId && roleId !== teacherRoleId) {
       return false

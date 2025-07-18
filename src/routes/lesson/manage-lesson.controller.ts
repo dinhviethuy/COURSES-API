@@ -11,6 +11,7 @@ import {
 import { ManageLessonService } from 'src/routes/lesson/manage-lesson.service'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { MessageRes } from 'src/shared/decorators/message.decorator'
+import { SessionTokenPayload } from 'src/shared/types/jwt.type'
 
 @Controller('manage-lessons')
 export class ManageLessonController {
@@ -19,8 +20,12 @@ export class ManageLessonController {
   @Get(':lessonId')
   @MessageRes('Lấy chi tiết bài học thành công')
   @ZodSerializerDto(GetLessonDetailResDTO)
-  getDetail(@Param() params: GetLessonParamsDTO) {
-    return this.manageLessonService.getDetail(params.lessonId)
+  getDetail(@Param() params: GetLessonParamsDTO, @ActiveUser() user: SessionTokenPayload) {
+    return this.manageLessonService.getDetail({
+      lessonId: params.lessonId,
+      roleId: user.roleId,
+      userId: user.userId
+    })
   }
 
   @Post()
@@ -33,17 +38,26 @@ export class ManageLessonController {
   @Put(':lessonId')
   @MessageRes('Cập nhật bài học thành công')
   @ZodSerializerDto(UpdateLessonResDTO)
-  update(@Param() params: GetLessonParamsDTO, @Body() body: UpdateLessonBodyDTO, @ActiveUser('userId') userId: number) {
+  update(
+    @Param() params: GetLessonParamsDTO,
+    @Body() body: UpdateLessonBodyDTO,
+    @ActiveUser() user: SessionTokenPayload
+  ) {
     return this.manageLessonService.update({
       lessonId: params.lessonId,
       data: body,
-      updatedById: userId
+      updatedById: user.userId,
+      roleId: user.roleId
     })
   }
 
   @Delete(':lessonId')
   @MessageRes('Xóa bài học thành công')
-  delete(@Param() params: GetLessonParamsDTO, @ActiveUser('userId') userId: number) {
-    return this.manageLessonService.delete({ lessonId: params.lessonId, deletedById: userId })
+  delete(@Param() params: GetLessonParamsDTO, @ActiveUser() user: SessionTokenPayload) {
+    return this.manageLessonService.delete({
+      lessonId: params.lessonId,
+      deletedById: user.userId,
+      roleId: user.roleId
+    })
   }
 }

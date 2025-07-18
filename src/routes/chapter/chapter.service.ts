@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common'
 import { CreateChaperBodyType, UpdateChaperBodyType } from 'src/routes/chapter/chapter.model'
 import { ChapterRepo } from 'src/routes/chapter/chapter.repo'
 import {
@@ -29,14 +29,16 @@ export class ChapterService {
   async updateChapter({
     chapterId,
     data,
-    updatedById
+    updatedById,
+    roleId
   }: {
     chapterId: number
     data: UpdateChaperBodyType
     updatedById: number
+    roleId: number
   }) {
     try {
-      const chapter = await this.chapterRepo.updateChapter({ chapterId, data, updatedById })
+      const chapter = await this.chapterRepo.updateChapter({ chapterId, data, updatedById, roleId })
       return chapter
     } catch (error) {
       if (isUniqueConstraintPrismaError(error)) {
@@ -48,17 +50,23 @@ export class ChapterService {
       if (isForeignKeyConstraintPrismaError(error)) {
         throw new BadRequestException('Khóa học không tồn tại')
       }
+      if (error instanceof HttpException) {
+        throw error
+      }
       throw error
     }
   }
 
-  async deleteChapter({ chapterId, deletedById }: { chapterId: number; deletedById: number }) {
+  async deleteChapter({ chapterId, deletedById, roleId }: { chapterId: number; deletedById: number; roleId: number }) {
     try {
-      await this.chapterRepo.deleteChapter({ chapterId, deletedById })
+      await this.chapterRepo.deleteChapter({ chapterId, deletedById, roleId })
       return true
     } catch (error) {
       if (isNotFoundPrismaError(error)) {
         throw new NotFoundException('Chương không tồn tại')
+      }
+      if (error instanceof HttpException) {
+        throw error
       }
       throw new BadRequestException('Lỗi khi xóa chương')
     }

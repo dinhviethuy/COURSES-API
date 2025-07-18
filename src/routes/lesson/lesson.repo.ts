@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import {
   CreateLessonBodyType,
   CreateLessonResType,
@@ -7,11 +7,20 @@ import {
   UpdateLessonBodyType,
   UpdateLessonResType
 } from 'src/routes/lesson/lesson.model'
+import { SharedRoleRepository } from 'src/shared/repositories/shared-role.repo'
 import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
 export class LessonRepo {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly sharedRoleRepo: SharedRoleRepository
+  ) {}
+
+  private async checkForAdmin(roleId: number) {
+    const adminRoleId = await this.sharedRoleRepo.getAdminRoleId()
+    return roleId === adminRoleId
+  }
 
   async getDetailClient(lessonId: number): Promise<GetLessonDetailResType | null> {
     const lesson = await this.prismaService.lesson.findFirst({
@@ -48,11 +57,27 @@ export class LessonRepo {
     return lesson
   }
 
-  async getDetailAdmin(lessonId: number): Promise<GetLessonDetailResType | null> {
-    return this.prismaService.lesson.findUnique({
+  async getDetailAdmin({
+    lessonId,
+    roleId,
+    userId
+  }: {
+    lessonId: number
+    roleId: number
+    userId: number
+  }): Promise<GetLessonDetailResType | null> {
+    const isAdmin = await this.checkForAdmin(roleId)
+    return this.prismaService.lesson.findFirst({
       where: {
         id: lessonId,
-        deletedAt: null
+        deletedAt: null,
+        chapter: {
+          deletedAt: null,
+          course: {
+            deletedAt: null,
+            createdById: isAdmin ? undefined : userId
+          }
+        }
       }
     })
   }
@@ -80,21 +105,45 @@ export class LessonRepo {
     })
   }
 
-  update({
+  async update({
     data,
     updatedById,
-    lessonId
+    lessonId,
+    roleId
   }: {
     data: UpdateLessonBodyType & { key?: string }
     updatedById: number
     lessonId: number
+    roleId: number
   }): Promise<UpdateLessonResType> {
+    const isAdmin = await this.checkForAdmin(roleId)
     if (data.videoUrl) {
       const key = data.videoUrl.split('/').pop()?.split('.')[0]
       if (!key) {
         throw new BadRequestException('Video URL không hợp lệ')
       }
       data.key = key
+    }
+    const lesson = await this.prismaService.lesson.findUnique({
+      where: {
+        id: lessonId,
+        deletedAt: null,
+        chapter: {
+          deletedAt: null,
+          course: {
+            deletedAt: null,
+            createdById: isAdmin ? undefined : updatedById,
+            chapters: {
+              some: {
+                id: data.chapterId
+              }
+            }
+          }
+        }
+      }
+    })
+    if (!lesson) {
+      throw new NotFoundException('Không tìm thấy bài học')
     }
     return this.prismaService.lesson.update({
       where: {
@@ -109,20 +158,33 @@ export class LessonRepo {
   }
 
   async delete(
-    { lessonId, deletedById }: { lessonId: number; deletedById: number },
+    { lessonId, deletedById, roleId }: { lessonId: number; deletedById: number; roleId: number },
     isHard?: boolean
   ): Promise<LessonType | null> {
+    const isAdmin = await this.checkForAdmin(roleId)
     if (isHard) {
       return this.prismaService.lesson.delete({
         where: {
-          id: lessonId
+          id: lessonId,
+          chapter: {
+            course: {
+              createdById: isAdmin ? undefined : deletedById
+            }
+          }
         }
       })
     } else {
       return this.prismaService.lesson.update({
         where: {
           id: lessonId,
-          deletedAt: null
+          deletedAt: null,
+          chapter: {
+            deletedAt: null,
+            course: {
+              deletedAt: null,
+              createdById: isAdmin ? undefined : deletedById
+            }
+          }
         },
         data: {
           deletedAt: new Date(),

@@ -50,8 +50,6 @@ export const RegisterBodySchema = UserSchema.pick({
 
 export const RegisterResSchema = LoginResSchema
 
-export const SessionTokenResSchema = LoginResSchema
-
 export const SendOTPBodySchema = z.object({
   email: z.string().email(),
   type: z.enum([OTPType.REGISTER, OTPType.FORGOT_PASSWORD])
@@ -76,4 +74,3 @@ export type RegisterBodyType = z.infer<typeof RegisterBodySchema>
 export type RegisterResType = z.infer<typeof RegisterResSchema>
 export type SendOTPBodyType = z.infer<typeof SendOTPBodySchema>
 export type ForgotPasswordBodyType = z.infer<typeof ForgotPasswordBodySchema>
-export type SessionTokenResType = z.infer<typeof SessionTokenResSchema>

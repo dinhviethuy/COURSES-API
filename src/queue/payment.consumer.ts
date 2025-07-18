@@ -14,7 +14,7 @@ export class PaymentConsumer extends WorkerHost {
       case CANCEL_PAYMENT_JOB_NAME: {
         const { orderId } = job.data
         await this.sharedPaymentRepo.cancelOrder(orderId)
-        return {}
+        return true
       }
       default:
         break

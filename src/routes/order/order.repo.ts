@@ -67,7 +67,7 @@ export class OrderRepo {
           select: {
             id: true,
             fullName: true,
-            email: true,
+            email: true
           }
         }
       }
@@ -116,6 +116,7 @@ export class OrderRepo {
         data: {
           userId,
           couponId,
+          courseId: cart.courseId,
           status: totalPrice === 0 ? OrderStatus.PAID : OrderStatus.PENDING,
           snapshots: {
             create: {
@@ -129,7 +130,8 @@ export class OrderRepo {
               couponType: coupon?.couponType,
               couponStartAt: coupon?.startAt,
               couponEndAt: coupon?.endAt,
-              couponId: coupon?.id
+              couponId: coupon?.id,
+              couponCode: coupon?.code
             }
           },
           createdById: userId
@@ -148,11 +150,12 @@ export class OrderRepo {
             status: CourseEnrollmentStatus.ACTIVE
           }
         })
-      } else {
-        await this.orderProducer.addCancelPaymentJob(order.id)
       }
       return order
     })
+    if (totalPrice !== 0) {
+      await this.orderProducer.addCancelPaymentJob(order.id)
+    }
     return order
   }
 

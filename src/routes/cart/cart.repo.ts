@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import { Prisma } from '@prisma/client'
 import {
   CartType,
   CreateCartBodyType,
@@ -7,6 +8,7 @@ import {
   GetListCartResType
 } from 'src/routes/cart/cart.model'
 import { OrderStatus } from 'src/shared/constants/order.constant'
+import { SortBy } from 'src/shared/constants/other.constant'
 import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
@@ -15,10 +17,20 @@ export class CartRepo {
 
   private generateFilter(query: GetCartQueryType) {
     const { orderBy, sortBy, limit, page } = query
-    return {
-      orderBy: {
+    let order: Prisma.CartItemOrderByWithRelationInput
+    if (sortBy === SortBy.CreatedAt) {
+      order = {
         [sortBy]: orderBy
-      },
+      }
+    } else {
+      order = {
+        course: {
+          [sortBy]: orderBy
+        }
+      }
+    }
+    return {
+      orderBy: order,
       skip: (page - 1) * limit,
       take: limit
     }
@@ -32,9 +44,10 @@ export class CartRepo {
           userId,
           deletedAt: null
         },
-        skip,
-        take,
-        orderBy,
+        ...(!query.getAll && {
+          skip,
+          take
+        }),
         include: {
           course: {
             select: {
@@ -47,7 +60,8 @@ export class CartRepo {
               courseType: true
             }
           }
-        }
+        },
+        orderBy
       }),
       this.prismaService.cartItem.count({
         where: {
@@ -60,8 +74,8 @@ export class CartRepo {
       cartItems,
       totalItems,
       page: query.page,
-      limit: query.limit,
-      totalPages: Math.ceil(totalItems / query.limit)
+      limit: query.getAll ? totalItems : query.limit,
+      totalPages: query.getAll ? 1 : Math.ceil(totalItems / query.limit)
     }
   }
 

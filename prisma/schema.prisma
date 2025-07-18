@@ -251,7 +251,8 @@ model Order {
   couponId      Int?
   snapshots     OrderItemSnapshot[]
 
-  courses       Course[]
+  courseId  Int    
+  course    Course  @relation(fields: [courseId], references: [id])
 
   payment       Payment?    @relation("OrderPayment")
 
@@ -284,6 +285,7 @@ model OrderItemSnapshot {
   courseDiscount Int?
   courseType    CourseType?
 
+  couponCode     String?
   couponDiscount Int?
   couponType    CouponType?
   couponStartAt DateTime?

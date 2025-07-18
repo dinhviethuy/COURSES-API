@@ -7,10 +7,14 @@ export class CourseService {
   constructor(private readonly courseRepo: CourseRepo) {}
 
   async listCourses(query: GetCoursesQueryType) {
-    return this.courseRepo.listCourses(query)
+    return this.courseRepo.listCourses({ query })
   }
 
-  async getCourseDetail(where: {id: number} | {slug: string}) {
+  async listCoursesBought({ query, userId }: { query: GetCoursesQueryType; userId: number }) {
+    return this.courseRepo.listCourses({ query, userId, isBought: true })
+  }
+
+  async getCourseDetail(where: { id: number } | { slug: string }) {
     try {
       const course = await this.courseRepo.getCourseDetail(where)
       if (!course) {
@@ -25,15 +29,7 @@ export class CourseService {
     }
   }
 
-  async canAccessCourse({
-    where,
-    userId,
-    roleId
-  }: {
-    where:CanAccessCourseBodyType
-    userId: number
-    roleId: number
-  }) {
+  async canAccessCourse({ where, userId, roleId }: { where: CanAccessCourseBodyType; userId: number; roleId: number }) {
     const canAccess = await this.courseRepo.canAccessCourse({ where, userId, roleId })
     if (!canAccess) {
       throw new ForbiddenException('Bạn không có quyền truy cập khóa học này')

@@ -14,6 +14,7 @@ import {
 } from 'src/routes/course/course.model'
 import { CourseEnrollmentStatus } from 'src/shared/constants/course-enrollment.constant'
 import { CourseType } from 'src/shared/constants/course.constant'
+import { OrderStatus } from 'src/shared/constants/order.constant'
 import { OrderBy, SortBy } from 'src/shared/constants/other.constant'
 import { CourseType as CourseTypeModel } from 'src/shared/models/shrared-course.model'
 import { SharedRoleRepository } from 'src/shared/repositories/shared-role.repo'
@@ -134,12 +135,14 @@ export class CourseRepo {
     query,
     isAdmin,
     roleId,
-    userId
+    userId,
+    isBought
   }: {
     query: GetCoursesQueryType | GetManageCoursesQueryType
     isAdmin: boolean
     roleId?: number
     userId?: number
+    isBought?: boolean
   }) {
     const { page, limit, search, minPrice, maxPrice, orderBy, sortBy } = query
     const skip = (page - 1) * limit
@@ -149,6 +152,14 @@ export class CourseRepo {
       deletedAt: null,
       isDraft: isAdmin ? (query as GetManageCoursesQueryType)?.isDraft : false,
       createdById: isAdminOrCreator ? undefined : userId
+    }
+    if (isBought) {
+      where.orders = {
+        some: {
+          userId,
+          status: OrderStatus.PAID
+        }
+      }
     }
     if (search) {
       where.title = {
@@ -192,13 +203,22 @@ export class CourseRepo {
     }
   }
 
-  async listCourses(query: GetCoursesQueryType): Promise<ListCoursesResType> {
+  async listCourses({
+    query,
+    userId,
+    isBought
+  }: {
+    query: GetCoursesQueryType
+    isBought?: boolean
+    userId?: number
+  }): Promise<ListCoursesResType> {
     const { where, skip, take, orderBy, limit, page } = await this.generateFilter({
       query,
       isAdmin: false,
-      roleId: 0,
-      userId: 0
+      isBought,
+      userId
     })
+
     const [courses, totalItems] = await Promise.all([
       this.prismaService.course.findMany({
         where,

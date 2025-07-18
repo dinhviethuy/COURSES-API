@@ -28,6 +28,13 @@ export class CourseController {
     })
   }
 
+  @Get('bought')
+  @MessageRes('Lấy danh sách khóa học thành công')
+  @ZodSerializerDto(ListCoursesResDTO)
+  async getListCourseBought(@Query() query: GetCoursesQueryDTO, @ActiveUser('userId') userId: number) {
+    return this.courseService.listCoursesBought({ query, userId })
+  }
+
   @Get()
   @IsPublic()
   @MessageRes('Lấy danh sách khóa học thành công')

@@ -15,7 +15,9 @@ export const ListCoursesResSchema = z.object({
       slug: true,
       price: true,
       isDraft: true,
-      courseType: true
+      courseType: true,
+      discount: true,
+      image: true
     })
   ),
   totalItems: z.number(),

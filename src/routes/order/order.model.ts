@@ -8,6 +8,7 @@ export const OrderSchema = z.object({
   id: z.number().int().positive(),
   userId: z.number().int().positive(),
   couponId: z.number().int().positive().nullable(),
+  courseId: z.number().int().positive(),
   status: z.enum([OrderStatus.CANCELLED, OrderStatus.PAID, OrderStatus.PENDING]).default(OrderStatus.PENDING),
   createdById: z.number().int().positive().nullable(),
   updatedById: z.number().int().positive().nullable(),
@@ -26,6 +27,7 @@ export const OrderItemSnapshotSchema = z.object({
   courseTitle: z.string().nullable(),
   coursePrice: z.number().int().min(0).nullable(),
   courseDiscount: z.number().int().min(0).nullable(),
+  couponCode: z.string().nullable(),
   courseType: z.enum([CourseType.COMBO, CourseType.SINGLE]).nullable(),
   couponDiscount: z.number().int().min(0).nullable(),
   couponType: z.enum([CouponType.PERCENT, CouponType.FIXED]).nullable(),
@@ -54,25 +56,30 @@ export const GetOrderListResSchema = z.object({
 })
 
 export const GetOrderListQuerySchema = z.object({
-  page: z.number().int().positive().default(1),
-  limit: z.number().int().positive().default(10),
-  status: z.preprocess((value) => {
-    if (typeof value === 'string') {
-      const lowered = value.trim().toLowerCase()
-      if (lowered === OrderStatus.CANCELLED.toLowerCase()) return OrderStatus.CANCELLED
-      if (lowered === OrderStatus.PAID.toLowerCase()) return OrderStatus.PAID
-      if (lowered === OrderStatus.PENDING.toLowerCase()) return OrderStatus.PENDING
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().default(10),
+  status: z.preprocess(
+    (value) => {
+      if (typeof value === 'string') {
+        const lowered = value.trim().toLowerCase()
+        if (lowered === OrderStatus.CANCELLED.toLowerCase()) return OrderStatus.CANCELLED
+        if (lowered === OrderStatus.PAID.toLowerCase()) return OrderStatus.PAID
+        if (lowered === OrderStatus.PENDING.toLowerCase()) return OrderStatus.PENDING
+        return undefined
+      }
       return undefined
-    }
-    return undefined
-  }, z.enum([OrderStatus.CANCELLED, OrderStatus.PAID, OrderStatus.PENDING]).optional())
+    },
+    z.enum([OrderStatus.CANCELLED, OrderStatus.PAID, OrderStatus.PENDING]).optional()
+  )
 })
 
 export const GetOrderDetailResSchema = OrderSchema.pick({
   id: true,
   userId: true,
   couponId: true,
-  status: true
+  status: true,
+  createdAt: true,
+  updatedAt: true
 }).extend({
   snapshots: z.array(OrderItemSnapshotSchema),
   user: UserSchema.pick({

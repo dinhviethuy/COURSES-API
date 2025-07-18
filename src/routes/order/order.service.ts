@@ -29,7 +29,8 @@ export class OrderService {
     return this.orderRepo.createOrder({ body, userId })
   }
 
-  cancelOrder({ orderId, userId }: { orderId: number; userId: number }) {
-    return this.orderRepo.cancelOrder({ orderId, userId })
+  async cancelOrder({ orderId, userId }: { orderId: number; userId: number }) {
+    await this.orderRepo.cancelOrder({ orderId, userId })
+    return true
   }
 }

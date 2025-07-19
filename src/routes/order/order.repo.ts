@@ -1,5 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets'
 import { Prisma } from '@prisma/client'
+import { Server } from 'socket.io'
 import {
   CreateOrderBodyType,
   CreateOrderResType,
@@ -12,11 +14,15 @@ import { OrderProducer } from 'src/routes/order/order.producer'
 import { CourseEnrollmentStatus } from 'src/shared/constants/course-enrollment.constant'
 import { OrderStatus } from 'src/shared/constants/order.constant'
 import { OrderBy } from 'src/shared/constants/other.constant'
-import { getTotalPrice, isNotFoundPrismaError } from 'src/shared/helpers'
+import { generateRoomId, getTotalPrice, isNotFoundPrismaError } from 'src/shared/helpers'
 import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
+@WebSocketGateway({ namespace: 'payment' })
 export class OrderRepo {
+  @WebSocketServer()
+  server: Server
+
   constructor(
     private readonly prismaService: PrismaService,
     private readonly orderProducer: OrderProducer
@@ -143,18 +149,29 @@ export class OrderRepo {
         }
       })
       if (totalPrice === 0) {
-        await tx.courseEnrollment.create({
-          data: {
+        await tx.courseEnrollment.upsert({
+          where: {
+            courseId_userId: {
+              userId,
+              courseId: cart.courseId
+            }
+          },
+          update: {},
+          create: {
             userId,
             courseId: cart.courseId,
             status: CourseEnrollmentStatus.ACTIVE
           }
         })
+        this.server.to(generateRoomId(userId)).emit('payment', {
+          status: 'success',
+          message: 'Payment received successfully'
+        })
       }
       return order
     })
     if (totalPrice !== 0) {
-      await this.orderProducer.addCancelPaymentJob(order.id)
+      await this.orderProducer.addCancelPaymentJob(order.id).catch((_) => {})
     }
     return order
   }

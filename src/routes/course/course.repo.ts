@@ -203,6 +203,53 @@ export class CourseRepo {
     }
   }
 
+  private buildWhereClause(where: Prisma.CourseWhereInput): string {
+    const conditions: string[] = []
+
+    if (where.deletedAt === null) {
+      conditions.push(`"Course"."deletedAt" IS NULL`)
+    }
+
+    if (typeof where.isDraft === 'boolean') {
+      conditions.push(`"Course"."isDraft" = ${where.isDraft}`)
+    }
+
+    if (typeof where.createdById === 'number') {
+      conditions.push(`"Course"."createdById" = ${where.createdById}`)
+    }
+
+    if (typeof where.title === 'object' && where.title && 'contains' in where.title) {
+      const keyword = (where.title as Prisma.StringFilter).contains
+      if (typeof keyword === 'string') {
+        conditions.push(`LOWER("Course"."title") LIKE LOWER('%${keyword.replace(/'/g, "''")}%')`)
+      }
+    }
+
+    if (typeof where.price === 'object' && where.price) {
+      const price = where.price as Prisma.IntFilter
+      if (typeof price.gte === 'number') {
+        conditions.push(`"Course"."price" >= ${price.gte}`)
+      }
+      if (typeof price.lte === 'number') {
+        conditions.push(`"Course"."price" <= ${price.lte}`)
+      }
+    }
+
+    if (typeof where.orders === 'object' && where.orders?.some) {
+      const some = where.orders.some
+      if (typeof some.userId === 'number' && some.status === 'PAID') {
+        conditions.push(`EXISTS (
+          SELECT 1 FROM "Order"
+          WHERE "Order"."courseId" = "Course"."id"
+          AND "Order"."userId" = ${some.userId}
+          AND "Order"."status" = 'PAID'
+        )`)
+      }
+    }
+
+    return conditions.length > 0 ? conditions.join(' AND ') : 'TRUE'
+  }
+
   async listCourses({
     query,
     userId,
@@ -218,14 +265,30 @@ export class CourseRepo {
       isBought,
       userId
     })
+    const whereClause = this.buildWhereClause(where)
 
     const [courses, totalItems] = await Promise.all([
-      this.prismaService.course.findMany({
-        where,
-        skip,
-        take,
-        orderBy
-      }),
+      isBought
+        ? this.prismaService.$queryRawUnsafe<CourseTypeModel[]>(`
+            SELECT "Course".* 
+            FROM "Course"
+            LEFT JOIN (
+              SELECT "courseId", MAX("createdAt") AS "latestOrder"
+              FROM "Order"
+              WHERE "status" = 'PAID'
+              GROUP BY "courseId"
+            ) o ON "Course"."id" = o."courseId"
+            WHERE ${whereClause}
+            ORDER BY o."latestOrder" DESC NULLS LAST
+            LIMIT ${take}
+            OFFSET ${skip}
+          `)
+        : this.prismaService.course.findMany({
+            where,
+            skip,
+            take,
+            orderBy
+          }),
       this.prismaService.course.count({
         where
       })

@@ -22,6 +22,7 @@ import { HttpExceptionFilter } from 'src/shared/filters/http-exception.filter'
 import { CustomZodSerializerInterceptor } from 'src/shared/interceptors/custom-zod-serializer.interceptor'
 import CustomZodValidationPipe from 'src/shared/pipes/custom-zod-validation.pipe'
 import { SharedModule } from 'src/shared/shared.module'
+import { WebSocketModule } from 'src/websockets/websocket.module'
 
 @Module({
   imports: [
@@ -43,7 +44,8 @@ import { SharedModule } from 'src/shared/shared.module'
     CouponModule,
     CartModule,
     OrderModule,
-    PaymentModule
+    PaymentModule,
+    WebSocketModule
   ],
   controllers: [AppController],
   providers: [

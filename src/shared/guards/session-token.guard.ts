@@ -1,6 +1,5 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common'
 import { Response } from 'express'
-import { envConfig } from 'src/shared/config'
 import { REQUEST_ROLE_PERMISSIONS, REQUEST_USER_KEY } from 'src/shared/constants/auth.constant'
 import { HTTPMethod } from 'src/shared/constants/role.constant'
 import { PrismaService } from 'src/shared/services/prisma.service'
@@ -73,8 +72,8 @@ export class SessionTokenGuard implements CanActivate {
         })
         response.cookie('sessionToken', sessionTokenRes, {
           httpOnly: true,
-          secure: envConfig.NODE_ENV === 'production',
-          sameSite: 'lax',
+          secure: true,
+          sameSite: 'none',
           path: '/',
           expires: new Date(payloadRes.exp * 1000)
         })

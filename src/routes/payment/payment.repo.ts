@@ -30,7 +30,7 @@ export class PaymentRepo {
     if (paymentTransaction) {
       throw new BadRequestException('Payment transaction already exists')
     }
-    const userId = await this.prismaService.$transaction(async (tx) => {
+    const { userId, orderId } = await this.prismaService.$transaction(async (tx) => {
       const orderId = body.code
         ? Number(body.code?.split(PREFIX_PAYMENT_CODE)[1])
         : Number(body.content?.split(PREFIX_PAYMENT_CODE)[1])
@@ -102,9 +102,9 @@ export class PaymentRepo {
           courseId
         }
       })
-      await this.paymentProducer.removeJob(orderId)
-      return userId
+      return { userId, orderId }
     })
+    await this.paymentProducer.removeJob(orderId).catch((_) => {})
     return userId
   }
 }

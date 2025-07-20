@@ -261,7 +261,7 @@ export class CourseRepo {
             `
             SELECT "Course".*
             FROM "Course"
-            LEFT JOIN "CourseEnrollment"
+            INNER JOIN "CourseEnrollment"
               ON "Course"."id" = "CourseEnrollment"."courseId"
               AND "CourseEnrollment"."userId" = $1
             WHERE ${whereClause}

@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common'
 import { parse } from 'date-fns'
 import { WebhookPaymentBodyType } from 'src/routes/payment/payment.model'
 import { PaymentProducer } from 'src/routes/payment/payment.producrer'
+import { CourseEnrollmentStatus } from 'src/shared/constants/course-enrollment.constant'
 import { OrderStatus } from 'src/shared/constants/order.constant'
 import { PREFIX_PAYMENT_CODE } from 'src/shared/constants/other.constant'
 import { getTotalPrice } from 'src/shared/helpers'
@@ -64,7 +65,18 @@ export class PaymentRepo {
           status: OrderStatus.PENDING
         },
         include: {
-          snapshots: true
+          snapshots: true,
+          course: {
+            include: {
+              comboChildren: {
+                select: {
+                  id: true,
+                  isDraft: true,
+                  deletedAt: true
+                }
+              }
+            }
+          }
         }
       })
       if (!order) {
@@ -89,19 +101,26 @@ export class PaymentRepo {
       })
       const userId = order.userId
       const courseId = order.snapshots[0].courseId
-      await tx.courseEnrollment.upsert({
-        where: {
-          courseId_userId: {
-            courseId,
-            userId
+      const courseIds = order.course.comboChildren
+        .filter((child) => !child.isDraft && !child.deletedAt)
+        .map((child) => child.id)
+      courseIds.push(courseId)
+      for (const id of courseIds) {
+        await tx.courseEnrollment.upsert({
+          where: {
+            courseId_userId: {
+              courseId: id,
+              userId
+            }
+          },
+          update: {},
+          create: {
+            userId,
+            courseId: id,
+            status: CourseEnrollmentStatus.ACTIVE
           }
-        },
-        update: {},
-        create: {
-          userId,
-          courseId
-        }
-      })
+        })
+      }
       return { userId, orderId }
     })
     await this.paymentProducer.removeJob(orderId).catch((_) => {})

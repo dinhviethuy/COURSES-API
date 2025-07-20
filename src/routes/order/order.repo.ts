@@ -4,7 +4,6 @@ import { Prisma } from '@prisma/client'
 import { Server } from 'socket.io'
 import {
   CreateOrderBodyType,
-  CreateOrderResType,
   GetOrderDetailResType,
   GetOrderListQueryType,
   GetOrderListResType,
@@ -80,7 +79,7 @@ export class OrderRepo {
     })
   }
 
-  async createOrder({ body, userId }: { body: CreateOrderBodyType; userId: number }): Promise<CreateOrderResType> {
+  async createOrder({ body, userId }: { body: CreateOrderBodyType; userId: number }): Promise<any> {
     const { cartId, couponId } = body
     const coupon = couponId
       ? await this.prismaService.coupon.findUnique({
@@ -105,7 +104,11 @@ export class OrderRepo {
         userId
       },
       include: {
-        course: true
+        course: {
+          include: {
+            comboChildren: true
+          }
+        }
       }
     })
     if (!cart) {
@@ -149,20 +152,26 @@ export class OrderRepo {
         }
       })
       if (totalPrice === 0) {
-        await tx.courseEnrollment.upsert({
-          where: {
-            courseId_userId: {
+        const courseIds = cart.course.comboChildren
+          .filter((child) => !child.isDraft && !child.deletedAt)
+          .map((child) => child.id)
+        courseIds.push(cart.courseId)
+        for (const id of courseIds) {
+          await tx.courseEnrollment.upsert({
+            where: {
+              courseId_userId: {
+                courseId: id,
+                userId
+              }
+            },
+            update: {},
+            create: {
               userId,
-              courseId: cart.courseId
+              courseId: id,
+              status: CourseEnrollmentStatus.ACTIVE
             }
-          },
-          update: {},
-          create: {
-            userId,
-            courseId: cart.courseId,
-            status: CourseEnrollmentStatus.ACTIVE
-          }
-        })
+          })
+        }
         this.server.to(generateRoomId(userId)).emit('payment', {
           status: 'success',
           message: 'Payment received successfully'

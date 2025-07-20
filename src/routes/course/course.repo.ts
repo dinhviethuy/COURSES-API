@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
+import { OrderStatus, Prisma } from '@prisma/client'
 import {
   CanAccessCourseBodyType,
   CreateCourseBodyType,
@@ -14,7 +14,6 @@ import {
 } from 'src/routes/course/course.model'
 import { CourseEnrollmentStatus } from 'src/shared/constants/course-enrollment.constant'
 import { CourseType } from 'src/shared/constants/course.constant'
-import { OrderStatus } from 'src/shared/constants/order.constant'
 import { OrderBy, SortBy } from 'src/shared/constants/other.constant'
 import { CourseType as CourseTypeModel } from 'src/shared/models/shrared-course.model'
 import { SharedRoleRepository } from 'src/shared/repositories/shared-role.repo'
@@ -180,9 +179,11 @@ export class CourseRepo {
     if (isAdmin && isAdminOrCreator) {
       where.createdById = (query as GetManageCoursesQueryType)?.createdById
     }
-    let caculatedOrderBy: Prisma.CourseOrderByWithRelationInput | Prisma.CourseOrderByWithRelationInput[] = {
-      createdAt: orderBy
-    }
+    let caculatedOrderBy: Prisma.CourseOrderByWithRelationInput | Prisma.CourseOrderByWithRelationInput[] = isBought
+      ? {}
+      : {
+          createdAt: orderBy
+        }
     if (sortBy === SortBy.Price) {
       caculatedOrderBy = {
         price: orderBy
@@ -235,18 +236,6 @@ export class CourseRepo {
       }
     }
 
-    if (typeof where.orders === 'object' && where.orders?.some) {
-      const some = where.orders.some
-      if (typeof some.userId === 'number' && some.status === 'PAID') {
-        conditions.push(`EXISTS (
-          SELECT 1 FROM "Order"
-          WHERE "Order"."courseId" = "Course"."id"
-          AND "Order"."userId" = ${some.userId}
-          AND "Order"."status" = 'PAID'
-        )`)
-      }
-    }
-
     return conditions.length > 0 ? conditions.join(' AND ') : 'TRUE'
   }
 
@@ -266,23 +255,24 @@ export class CourseRepo {
       userId
     })
     const whereClause = this.buildWhereClause(where)
-
     const [courses, totalItems] = await Promise.all([
       isBought
-        ? this.prismaService.$queryRawUnsafe<CourseTypeModel[]>(`
-            SELECT "Course".* 
+        ? this.prismaService.$queryRawUnsafe<CourseTypeModel[]>(
+            `
+            SELECT "Course".*
             FROM "Course"
-            LEFT JOIN (
-              SELECT "courseId", MAX("createdAt") AS "latestOrder"
-              FROM "Order"
-              WHERE "status" = 'PAID'
-              GROUP BY "courseId"
-            ) o ON "Course"."id" = o."courseId"
+            LEFT JOIN "CourseEnrollment"
+              ON "Course"."id" = "CourseEnrollment"."courseId"
+              AND "CourseEnrollment"."userId" = $1
             WHERE ${whereClause}
-            ORDER BY o."latestOrder" DESC NULLS LAST
-            LIMIT ${take}
-            OFFSET ${skip}
-          `)
+            ${query.sortBy === SortBy.CreatedAt ? `ORDER BY "CourseEnrollment"."createdAt" ${query.orderBy}` : `ORDER BY "Course"."${query.sortBy}" ${query.orderBy}`}
+            LIMIT $2
+            OFFSET $3
+            `,
+            userId,
+            take,
+            skip
+          )
         : this.prismaService.course.findMany({
             where,
             skip,

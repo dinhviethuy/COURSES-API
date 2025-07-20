@@ -28,7 +28,7 @@ export class OrderRepo {
   ) {}
 
   async listOrders({ query, userId }: { query: GetOrderListQueryType; userId: number }): Promise<GetOrderListResType> {
-    const { page, limit, status } = query
+    const { page, limit, status, getAll } = query
     const skip = (page - 1) * limit
     const take = limit
     const where: Prisma.OrderWhereInput = {
@@ -38,8 +38,10 @@ export class OrderRepo {
     const [orders, totalItems] = await Promise.all([
       this.prismaService.order.findMany({
         where,
-        skip,
-        take,
+        ...(!getAll && {
+          skip,
+          take
+        }),
         orderBy: {
           createdAt: OrderBy.Desc
         },

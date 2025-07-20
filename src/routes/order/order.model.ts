@@ -70,7 +70,15 @@ export const GetOrderListQuerySchema = z.object({
       return undefined
     },
     z.enum([OrderStatus.CANCELLED, OrderStatus.PAID, OrderStatus.PENDING]).optional()
-  )
+  ),
+  getAll: z
+    .preprocess((value: any) => {
+      if (typeof value === 'string') {
+        return value.toLowerCase() === 'true'
+      }
+      return false
+    }, z.boolean())
+    .optional()
 })
 
 export const GetOrderDetailResSchema = OrderSchema.pick({

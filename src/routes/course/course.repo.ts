@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
-import { OrderStatus, Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 import {
   CanAccessCourseBodyType,
   CreateCourseBodyType,
@@ -153,10 +153,9 @@ export class CourseRepo {
       createdById: isAdminOrCreator ? undefined : userId
     }
     if (isBought) {
-      where.orders = {
+      where.courseEnrollments = {
         some: {
-          userId,
-          status: OrderStatus.PAID
+          userId
         }
       }
     }
@@ -445,6 +444,7 @@ export class CourseRepo {
         } else {
           setIds.add(course.id)
         }
+        setIds.add(course.id)
       }
       return this.prismaService.course.create({
         data: {

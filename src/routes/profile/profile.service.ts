@@ -41,6 +41,9 @@ export class ProfileService {
       if (isNotFoundPrismaError(error)) {
         throw new NotFoundException('Không tìm thấy tài khoản')
       }
+      if (error instanceof HttpException) {
+        throw error
+      }
       throw new BadRequestException('Lỗi khi thay đổi mật khẩu')
     }
   }

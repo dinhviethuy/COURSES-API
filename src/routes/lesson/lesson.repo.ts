@@ -90,6 +90,18 @@ export class LessonRepo {
       }
       data.key = key
     }
+    const chapter = await this.prismaService.chapter.findUnique({
+      where: {
+        id: data.chapterId,
+        deletedAt: null,
+        course: {
+          deletedAt: null
+        }
+      }
+    })
+    if (!chapter) {
+      throw new NotFoundException('Không tìm thấy chương')
+    }
     const count = await this.prismaService.lesson.count({
       where: {
         chapterId: data.chapterId,

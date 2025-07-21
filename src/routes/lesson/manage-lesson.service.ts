@@ -36,6 +36,9 @@ export class ManageLessonService {
       if (isUniqueConstraintPrismaError(error)) {
         throw new NotAcceptableException('Bài học đã tồn tại')
       }
+      if (error instanceof HttpException) {
+        throw error
+      }
       throw new BadRequestException('Lỗi khi tạo bài học')
     }
   }

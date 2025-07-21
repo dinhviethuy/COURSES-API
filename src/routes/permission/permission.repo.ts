@@ -22,8 +22,10 @@ export class PermissionRepo {
         }
       }),
       this.prismaService.permission.findMany({
-        skip,
-        take,
+        ...(!pagination.getAll && {
+          skip,
+          take
+        }),
         where: {
           deletedAt: null
         }
@@ -33,8 +35,8 @@ export class PermissionRepo {
       permissions,
       totalItems,
       page: pagination.page,
-      limit: pagination.limit,
-      totalPages: Math.ceil(totalItems / pagination.limit)
+      limit: pagination.getAll ? totalItems : pagination.limit,
+      totalPages: pagination.getAll ? 1 : Math.ceil(totalItems / pagination.limit)
     }
   }
 

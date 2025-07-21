@@ -1,8 +1,10 @@
 import { BullModule } from '@nestjs/bullmq'
 import { Module } from '@nestjs/common'
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
+import { ScheduleModule } from '@nestjs/schedule'
 import { AppController } from 'src/app.controller'
 import { AppService } from 'src/app.service'
+import { RemoveSessionTokenCronjob } from 'src/cronjobs/remove-session-token.cronjob'
 import { PaymentConsumer } from 'src/queue/payment.consumer'
 import { AuthModule } from 'src/routes/auth/auth.module'
 import { CartModule } from 'src/routes/cart/cart.module'
@@ -26,6 +28,7 @@ import { WebSocketModule } from 'src/websockets/websocket.module'
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     BullModule.forRoot({
       connection: {
         url: envConfig.REDIS_URL
@@ -62,7 +65,8 @@ import { WebSocketModule } from 'src/websockets/websocket.module'
       provide: APP_FILTER,
       useClass: HttpExceptionFilter
     },
-    PaymentConsumer
+    PaymentConsumer,
+    RemoveSessionTokenCronjob
   ]
 })
 export class AppModule {}

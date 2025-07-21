@@ -104,19 +104,33 @@ export class ChapterRepo {
         }
       })
     }
-    return this.prismaService.chapter.update({
-      where: {
-        id: chapterId,
-        deletedAt: null,
-        course: {
+    return this.prismaService.$transaction(async (tx) => {
+      const deletedAt = new Date()
+      const chapter = await tx.chapter.update({
+        where: {
+          id: chapterId,
           deletedAt: null,
-          createdById: isAdmin ? undefined : deletedById
+          course: {
+            deletedAt: null,
+            createdById: isAdmin ? undefined : deletedById
+          }
+        },
+        data: {
+          deletedById,
+          deletedAt
         }
-      },
-      data: {
-        deletedById,
-        deletedAt: new Date()
-      }
+      })
+      await tx.lesson.updateMany({
+        where: {
+          chapterId,
+          deletedAt: null
+        },
+        data: {
+          deletedById,
+          deletedAt
+        }
+      })
+      return chapter
     })
   }
 }

@@ -73,7 +73,7 @@ export class ManageLessonService {
 
   async delete({ lessonId, deletedById, roleId }: { lessonId: number; deletedById: number; roleId: number }) {
     try {
-      await this.lessonRepo.delete({ lessonId, deletedById, roleId })
+      await this.lessonRepo.delete({ lessonId, deletedById, roleId }, true)
       return true
     } catch (error) {
       if (isNotFoundPrismaError(error)) {

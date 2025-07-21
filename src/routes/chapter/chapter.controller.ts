@@ -6,7 +6,7 @@ import {
   GetChapterParamsDTO,
   UpdateChaperBodyDTO,
   UpdateChaperResDTO
-} from 'src/routes/chapter/chapter,dto'
+} from 'src/routes/chapter/chapter.dto'
 import { ChapterService } from 'src/routes/chapter/chapter.service'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { MessageRes } from 'src/shared/decorators/message.decorator'

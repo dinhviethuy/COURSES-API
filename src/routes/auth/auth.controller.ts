@@ -1,4 +1,5 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Res } from '@nestjs/common'
+import { Body, Controller, HttpCode, HttpStatus, Post, Res, UseGuards } from '@nestjs/common'
+import { ThrottlerGuard } from '@nestjs/throttler'
 import { Response } from 'express'
 import { ZodSerializerDto } from 'nestjs-zod'
 import {
@@ -16,6 +17,7 @@ import { MessageRes } from 'src/shared/decorators/message.decorator'
 import { EmptyBodyDTO } from 'src/shared/dtos/request.dto'
 import { TokenService } from 'src/shared/services/token.service'
 
+@UseGuards(ThrottlerGuard)
 @Controller('auth')
 export class AuthController {
   constructor(

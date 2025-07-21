@@ -594,16 +594,45 @@ export class CourseRepo {
         }
       })
     } else {
-      return this.prismaService.course.update({
-        where: {
-          id: courseId,
-          deletedAt: null,
-          createdById: isAdminOrCreator ? undefined : deletedById
-        },
-        data: {
-          deletedAt: new Date(),
-          deletedById
-        }
+      return this.prismaService.$transaction(async (tx) => {
+        const deletedAt = new Date()
+        const course = tx.course.update({
+          where: {
+            id: courseId,
+            deletedAt: null,
+            createdById: isAdminOrCreator ? undefined : deletedById
+          },
+          data: {
+            deletedAt,
+            deletedById
+          }
+        })
+        // set deletedAt cho chương
+        await tx.chapter.updateMany({
+          where: {
+            courseId,
+            deletedAt: null
+          },
+          data: {
+            deletedAt,
+            deletedById
+          }
+        })
+        // set deletedAt cho bài học
+        await tx.lesson.updateMany({
+          where: {
+            chapter: {
+              courseId,
+              deletedAt
+            },
+            deletedAt: null
+          },
+          data: {
+            deletedAt,
+            deletedById
+          }
+        })
+        return course
       })
     }
   }

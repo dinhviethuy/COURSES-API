@@ -129,7 +129,8 @@ export class CartRepo {
       : this.prismaService.cartItem.update({
           where: {
             id: cartId,
-            userId
+            userId,
+            deletedAt: null
           },
           data: {
             deletedAt: new Date()

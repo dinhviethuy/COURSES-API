@@ -57,8 +57,8 @@ export class OrderRepo {
       orders,
       totalItems,
       page,
-      limit,
-      totalPages: Math.ceil(totalItems / limit)
+      limit: query.getAll ? totalItems : limit,
+      totalPages: query.getAll ? 1 : Math.ceil(totalItems / limit)
     }
   }
 

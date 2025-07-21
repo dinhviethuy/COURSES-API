@@ -112,7 +112,8 @@ export class CouponRepo {
   }): Promise<UpdateCouponResType> {
     return this.prisma.coupon.update({
       where: {
-        id: couponId
+        id: couponId,
+        deletedAt: null
       },
       data: {
         ...data,

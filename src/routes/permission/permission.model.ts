@@ -12,7 +12,15 @@ export const GetPermissionsResSchema = z.object({
 export const GetPermissionsQuerySchema = z
   .object({
     page: z.coerce.number().int().positive().default(1),
-    limit: z.coerce.number().int().positive().default(10)
+    limit: z.coerce.number().int().positive().default(10),
+    getAll: z
+      .preprocess((value: any) => {
+        if (typeof value === 'string') {
+          return value.toLowerCase() === 'true'
+        }
+        return false
+      }, z.boolean())
+      .optional()
   })
   .strict()
 

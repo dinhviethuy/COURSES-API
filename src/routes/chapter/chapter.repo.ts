@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import {
-  CreateChaperBodyType,
-  CreateChaperResType,
-  UpdateChaperBodyType,
-  UpdateChaperResType
+  CreateChapterBodyType,
+  CreateChapterResType,
+  UpdateChapterBodyType,
+  UpdateChapterResType
 } from 'src/routes/chapter/chapter.model'
 import { CourseType } from 'src/shared/constants/course.constant'
 import { ChapterType } from 'src/shared/models/shared-chapter.model'
@@ -22,7 +22,7 @@ export class ChapterRepo {
     return roleId === adminRoleId
   }
 
-  async createChapter(data: CreateChaperBodyType, createdById: number): Promise<CreateChaperResType> {
+  async createChapter(data: CreateChapterBodyType, createdById: number): Promise<CreateChapterResType> {
     const course = await this.prismaService.course.findUnique({
       where: {
         id: data.courseId,
@@ -57,10 +57,10 @@ export class ChapterRepo {
     roleId
   }: {
     chapterId: number
-    data: UpdateChaperBodyType
+    data: UpdateChapterBodyType
     updatedById: number
     roleId: number
-  }): Promise<UpdateChaperResType> {
+  }): Promise<UpdateChapterResType> {
     const isAdmin = await this.checkForAdmin(roleId)
     return this.prismaService.chapter.update({
       where: {

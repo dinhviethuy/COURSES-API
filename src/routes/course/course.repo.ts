@@ -10,7 +10,8 @@ import {
   GetManageCoursesQueryType,
   ListCoursesResType,
   UpdateCourseBodyType,
-  UpdateCourseResType
+  UpdateCourseResType,
+  ValidateSlugBodyType
 } from 'src/routes/course/course.model'
 import { CourseEnrollmentStatus } from 'src/shared/constants/course-enrollment.constant'
 import { CourseType } from 'src/shared/constants/course.constant'
@@ -728,11 +729,16 @@ export class CourseRepo {
     await this.prismaService.$transaction(updates)
   }
 
-  async validateSlug(slug: string): Promise<CourseTypeModel | null> {
+  async validateSlug({ slug, courseId }: ValidateSlugBodyType): Promise<CourseTypeModel | null> {
     return this.prismaService.course.findFirst({
       where: {
         slug,
-        deletedAt: null
+        deletedAt: null,
+        ...(courseId && {
+          id: {
+            not: courseId
+          }
+        })
       }
     })
   }

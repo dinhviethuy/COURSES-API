@@ -117,7 +117,10 @@ export class ManageCourseService {
   }
 
   async validateSlug(body: ValidateSlugBodyType) {
-    const course = await this.courseRepo.validateSlug(body.slug)
+    const course = await this.courseRepo.validateSlug({
+      slug: body.slug,
+      courseId: body.courseId
+    })
     if (course) {
       throw new BadRequestException('Slug đã tồn tại')
     }

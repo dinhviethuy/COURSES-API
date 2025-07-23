@@ -1,5 +1,5 @@
 import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common'
-import { CreateChaperBodyType, UpdateChaperBodyType } from 'src/routes/chapter/chapter.model'
+import { CreateChapterBodyType, UpdateChapterBodyType } from 'src/routes/chapter/chapter.model'
 import { ChapterRepo } from 'src/routes/chapter/chapter.repo'
 import {
   isForeignKeyConstraintPrismaError,
@@ -11,7 +11,7 @@ import {
 export class ChapterService {
   constructor(private readonly chapterRepo: ChapterRepo) {}
 
-  async createChapter(data: CreateChaperBodyType, createdById: number) {
+  async createChapter(data: CreateChapterBodyType, createdById: number) {
     try {
       const chapter = await this.chapterRepo.createChapter(data, createdById)
       return chapter
@@ -33,7 +33,7 @@ export class ChapterService {
     roleId
   }: {
     chapterId: number
-    data: UpdateChaperBodyType
+    data: UpdateChapterBodyType
     updatedById: number
     roleId: number
   }) {

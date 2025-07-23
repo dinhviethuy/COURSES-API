@@ -1,11 +1,11 @@
 import { Body, Controller, Delete, Param, Post, Put } from '@nestjs/common'
 import { ZodSerializerDto } from 'nestjs-zod'
 import {
-  CreateChaperBodyDTO,
-  CreateChaperResDTO,
+  CreateChapterBodyDTO,
+  CreateChapterResDTO,
   GetChapterParamsDTO,
-  UpdateChaperBodyDTO,
-  UpdateChaperResDTO
+  UpdateChapterBodyDTO,
+  UpdateChapterResDTO
 } from 'src/routes/chapter/chapter.dto'
 import { ChapterService } from 'src/routes/chapter/chapter.service'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
@@ -18,17 +18,17 @@ export class ChapterController {
 
   @Post()
   @MessageRes('Tạo chương thành công')
-  @ZodSerializerDto(CreateChaperResDTO)
-  async createChapter(@Body() body: CreateChaperBodyDTO, @ActiveUser('userId') userId: number) {
+  @ZodSerializerDto(CreateChapterResDTO)
+  async createChapter(@Body() body: CreateChapterBodyDTO, @ActiveUser('userId') userId: number) {
     return this.chapterService.createChapter(body, userId)
   }
 
   @Put(':chapterId')
   @MessageRes('Cập nhật chương thành công')
-  @ZodSerializerDto(UpdateChaperResDTO)
+  @ZodSerializerDto(UpdateChapterResDTO)
   async updateChapter(
     @Param() param: GetChapterParamsDTO,
-    @Body() body: UpdateChaperBodyDTO,
+    @Body() body: UpdateChapterBodyDTO,
     @ActiveUser() user: SessionTokenPayload
   ) {
     return this.chapterService.updateChapter({

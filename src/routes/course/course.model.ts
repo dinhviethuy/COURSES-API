@@ -239,7 +239,8 @@ export const ReorderChaptersAndLessonsBodySchema = z
   })
 
 export const ValidateSlugBodySchema = z.object({
-  slug: z.string().min(1)
+  slug: z.string().min(1),
+  courseId: z.coerce.number().int().positive().optional()
 })
 
 export const CanAccessCourseBodySchema = z

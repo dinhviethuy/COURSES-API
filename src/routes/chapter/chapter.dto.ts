@@ -1,18 +1,18 @@
 import { createZodDto } from 'nestjs-zod'
 import {
-  CreateChaperBodySchema,
-  CreateChaperResSchema,
+  CreateChapterBodySchema,
+  CreateChapterResSchema,
   GetChapterParamsSchema,
-  UpdateChaperBodySchema,
-  UpdateChaperResSchema
+  UpdateChapterBodySchema,
+  UpdateChapterResSchema
 } from 'src/routes/chapter/chapter.model'
 
-export class CreateChaperBodyDTO extends createZodDto(CreateChaperBodySchema) {}
+export class CreateChapterBodyDTO extends createZodDto(CreateChapterBodySchema) {}
 
-export class CreateChaperResDTO extends createZodDto(CreateChaperResSchema) {}
+export class CreateChapterResDTO extends createZodDto(CreateChapterResSchema) {}
 
-export class UpdateChaperBodyDTO extends createZodDto(UpdateChaperBodySchema) {}
+export class UpdateChapterBodyDTO extends createZodDto(UpdateChapterBodySchema) {}
 
-export class UpdateChaperResDTO extends createZodDto(UpdateChaperResSchema) {}
+export class UpdateChapterResDTO extends createZodDto(UpdateChapterResSchema) {}
 
 export class GetChapterParamsDTO extends createZodDto(GetChapterParamsSchema) {}

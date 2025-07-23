@@ -49,7 +49,15 @@ export const GetManageCoursesQuerySchema = GetCoursesQuerySchema.extend({
     if (typeof value === 'boolean') return value
     return undefined
   }, z.boolean().optional()),
-  createdById: z.coerce.number().int().positive().optional()
+  createdById: z.coerce.number().int().positive().optional(),
+  getAll: z
+    .preprocess((value: any) => {
+      if (typeof value === 'string') {
+        return value.toLowerCase() === 'true'
+      }
+      return false
+    }, z.boolean())
+    .optional()
 })
 
 export const GetCourseDetailResSchema = CourseSchema.pick({

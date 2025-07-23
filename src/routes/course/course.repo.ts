@@ -310,8 +310,10 @@ export class CourseRepo {
     const [courses, totalItems] = await Promise.all([
       this.prismaService.course.findMany({
         where,
-        skip,
-        take,
+        ...(!query.getAll && {
+          skip,
+          take
+        }),
         orderBy
       }),
       this.prismaService.course.count({
@@ -321,9 +323,9 @@ export class CourseRepo {
     return {
       courses,
       page,
-      limit,
+      limit: query.getAll ? totalItems : limit,
       totalItems,
-      totalPages: Math.ceil(totalItems / limit)
+      totalPages: query.getAll ? 1 : Math.ceil(totalItems / limit)
     }
   }
 

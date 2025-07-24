@@ -127,7 +127,8 @@ export const GetCourseDetailResSchemaForAdmin = CourseSchema.pick({
       title: true,
       description: true,
       order: true,
-      isDraft: true
+      isDraft: true,
+      courseId: true
     }).extend({
       duration: z.number().min(0).default(0),
       lessons: z.array(
@@ -138,7 +139,8 @@ export const GetCourseDetailResSchemaForAdmin = CourseSchema.pick({
           order: true,
           isDraft: true,
           duration: true,
-          videoUrl: true
+          videoUrl: true,
+          chapterId: true
         })
       )
     })

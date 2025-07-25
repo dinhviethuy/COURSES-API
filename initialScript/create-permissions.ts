@@ -17,7 +17,8 @@ const TeacherModule = [
   'MANAGE-LESSONS',
   'COUPONS',
   'CARTS',
-  'ORDERS'
+  'ORDERS',
+  'ROLES'
 ]
 const StudentModule = ['AUTH', 'PROFILE', 'COURSES', 'LESSONS', 'COUPONS', 'CARTS', 'ORDERS', 'MEDIA']
 

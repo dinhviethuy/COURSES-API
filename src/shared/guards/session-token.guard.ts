@@ -51,6 +51,20 @@ export class SessionTokenGuard implements CanActivate {
         throw new UnauthorizedException('Session token đã hết hạn')
       }
       let payloadRes = payload
+      const userInDb = await this.prismaService.user.findUnique({
+        where: {
+          id: payload.userId,
+          roleId: payload.roleId
+        }
+      })
+      if (!userInDb) {
+        await this.prismaService.sessionToken.delete({
+          where: {
+            token: sessionToken
+          }
+        })
+        throw new UnauthorizedException('Session token không hợp lệ')
+      }
       let sessionTokenRes = sessionToken
       const timeUseSeconds = payload.exp - payload.iat
       const timeUsedSeconds = (Date.now() - sessionTokenInDb.createdAt.getTime()) / 1000

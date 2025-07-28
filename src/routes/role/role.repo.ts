@@ -16,14 +16,12 @@ export class RoleRepo {
   constructor(private readonly prismaService: PrismaService) {}
 
   private generateFilter(pagination: GetRolesQueryType) {
-    const { page, limit, orderBy, sortBy, isActive, getAll, search } = pagination
+    const { page, limit, orderBy, sortBy, isActive, search } = pagination
     const skip = limit * (page - 1)
     const take = limit
     const where: Prisma.RoleWhereInput = {
-      deletedAt: null
-    }
-    if (isActive) {
-      where.isActive = isActive
+      deletedAt: null,
+      isActive: isActive ?? undefined
     }
     if (search) {
       where.name = { contains: search, mode: 'insensitive' }
@@ -82,10 +80,29 @@ export class RoleRepo {
   }
 
   async create({ createdById, data }: { createdById: number; data: CreateRoleBodyType }): Promise<RoleType> {
+    if (data.permissionIds.length > 0) {
+      const permissions = await this.prismaService.permission.findMany({
+        where: {
+          id: {
+            in: data.permissionIds
+          }
+        }
+      })
+      const deletedPermissions = permissions.filter((permission) => permission.deletedAt)
+      if (deletedPermissions.length > 0) {
+        const deletedIds = deletedPermissions.map((permission) => permission.id).join(', ')
+        throw new Error(`Quyền có id ${deletedIds} đã bị xóa`)
+      }
+    }
     return this.prismaService.role.create({
       data: {
-        ...data,
-        createdById
+        name: data.name,
+        description: data.description,
+        isActive: data.isActive,
+        createdById,
+        permissions: {
+          connect: data.permissionIds.map((id) => ({ id }))
+        }
       }
     })
   }

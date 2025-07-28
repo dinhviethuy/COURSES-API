@@ -19,12 +19,14 @@ export const GetRolesQuerySchema = z
   .object({
     page: z.coerce.number().int().positive().default(1),
     limit: z.coerce.number().int().positive().default(10),
-    getAll: z.preprocess((value: any) => {
-      if (typeof value === 'string') {
-        return value.toLowerCase() === 'true'
-      }
-      return false
-    }, z.boolean()).optional(),
+    getAll: z
+      .preprocess((value: any) => {
+        if (typeof value === 'string') {
+          return value.toLowerCase() === 'true'
+        }
+        return false
+      }, z.boolean())
+      .optional(),
     isActive: z.preprocess((value) => {
       if (typeof value === 'string') {
         const lowered = value.trim().toLowerCase()
@@ -51,7 +53,11 @@ export const CreateRoleBodySchema = RoleSchema.pick({
   name: true,
   description: true,
   isActive: true
-}).strict()
+})
+  .extend({
+    permissionIds: z.array(z.number())
+  })
+  .strict()
 
 export const CreateRoleResSchema = RoleSchema
 

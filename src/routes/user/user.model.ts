@@ -26,15 +26,18 @@ export const GetUsersQuerySchema = z
     page: z.coerce.number().int().positive().default(1),
     limit: z.coerce.number().int().positive().default(10),
     search: z.string().optional(),
-    status: z.preprocess((value) => {
-      if (typeof value === 'string') {
-        const lowered = value.trim().toLowerCase()
-        if (lowered === UserStatus.ACTIVE.toLowerCase()) return UserStatus.ACTIVE
-        if (lowered === UserStatus.BLOCKED.toLowerCase()) return UserStatus.BLOCKED
+    status: z.preprocess(
+      (value) => {
+        if (typeof value === 'string') {
+          const lowered = value.trim().toLowerCase()
+          if (lowered === UserStatus.ACTIVE.toLowerCase()) return UserStatus.ACTIVE
+          if (lowered === UserStatus.BLOCKED.toLowerCase()) return UserStatus.BLOCKED
+          return undefined
+        }
         return undefined
-      }
-      return undefined
-    }, z.enum([UserStatus.ACTIVE, UserStatus.BLOCKED]).optional()),
+      },
+      z.enum([UserStatus.ACTIVE, UserStatus.BLOCKED]).optional()
+    ),
     roleId: z.preprocess((value) => {
       if (typeof value === 'string') {
         const number = Number(value.trim())
@@ -45,12 +48,14 @@ export const GetUsersQuerySchema = z
     }, z.coerce.number().int().positive().optional()),
     orderBy: z.enum([OrderBy.Asc, OrderBy.Desc]).default(OrderBy.Desc),
     sortBy: z.enum([SortBy.FullName, SortBy.Email, SortBy.CreatedAt]).default(SortBy.CreatedAt),
-    getAll: z.preprocess((value: any) => {
+    getAll: z
+      .preprocess((value: any) => {
         if (typeof value === 'string') {
           return value.toLowerCase().trim() === 'true'
         }
         return false
-      }, z.boolean()).optional()
+      }, z.boolean())
+      .optional()
   })
   .strict()
 

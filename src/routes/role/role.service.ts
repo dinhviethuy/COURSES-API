@@ -2,7 +2,11 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { CreateRoleBodyType, GetRolesQueryType, UpdateRoleBodyType } from 'src/routes/role/role.model'
 import { RoleRepo } from 'src/routes/role/role.repo'
 import { RoleName } from 'src/shared/constants/role.constant'
-import { isNotFoundPrismaError, isUniqueConstraintPrismaError } from 'src/shared/helpers'
+import {
+  isForeignKeyConstraintPrismaError,
+  isNotFoundPrismaError,
+  isUniqueConstraintPrismaError
+} from 'src/shared/helpers'
 
 @Injectable()
 export class RoleService {
@@ -84,6 +88,9 @@ export class RoleService {
     } catch (error) {
       if (isNotFoundPrismaError(error)) {
         throw new NotFoundException('Không tìm thấy vai trò')
+      }
+      if (isForeignKeyConstraintPrismaError(error)) {
+        throw new BadRequestException('Vai trò đang được sử dụng')
       }
       throw error
     }

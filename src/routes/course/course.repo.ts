@@ -73,6 +73,7 @@ export class CourseRepo {
             id: true,
             title: true,
             order: true,
+            description: true,
             lessons: {
               select: {
                 id: true,

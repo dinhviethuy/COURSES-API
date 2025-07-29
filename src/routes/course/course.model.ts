@@ -81,7 +81,8 @@ export const GetCourseDetailResSchema = CourseSchema.pick({
     ChapterSchema.pick({
       id: true,
       title: true,
-      order: true
+      order: true,
+      description: true
     }).extend({
       duration: z.number().min(0).default(0),
       lessons: z.array(

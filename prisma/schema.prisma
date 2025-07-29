@@ -82,6 +82,10 @@ model User {
   chapters      Chapter[]  @relation("ChapterCreators")
   lessons       Lesson[]   @relation("LessonCreators")
   courseEnrollments CourseEnrollment[]
+  coupons         Coupon[]  @relation("CouponCreatedUsers")
+  updatedCoupons  Coupon[]  @relation("CouponUpdatedUsers")
+  deletedCoupons  Coupon[]  @relation("CouponDeletedUsers")
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
@@ -359,13 +363,16 @@ model Coupon {
   endAt DateTime
   isActive Boolean @default(true)
 
-  orderss     Order[]
+  orders     Order[]
   snapshots   OrderItemSnapshot[]
 
   couponType CouponType
 
+  createdBy     User?     @relation("CouponCreatedUsers", fields: [createdById], references: [id], onDelete: Cascade, onUpdate: NoAction)
   createdById   Int?
+  updatedBy     User?     @relation("CouponUpdatedUsers", fields: [updatedById], references: [id], onDelete: Cascade, onUpdate: NoAction)
   updatedById   Int?
+  deletedBy     User?     @relation("CouponDeletedUsers", fields: [deletedById], references: [id], onDelete: Cascade, onUpdate: NoAction)
   deletedById   Int?
 
   createdAt     DateTime  @default(now())

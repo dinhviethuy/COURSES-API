@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets'
 import { Prisma } from '@prisma/client'
 import { Server } from 'socket.io'
@@ -14,6 +14,7 @@ import { CourseEnrollmentStatus } from 'src/shared/constants/course-enrollment.c
 import { OrderStatus } from 'src/shared/constants/order.constant'
 import { OrderBy } from 'src/shared/constants/other.constant'
 import { generateRoomId, getTotalPrice, isNotFoundPrismaError } from 'src/shared/helpers'
+import { SharedRoleRepository } from 'src/shared/repositories/shared-role.repo'
 import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
@@ -24,8 +25,14 @@ export class OrderRepo {
 
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly orderProducer: OrderProducer
+    private readonly orderProducer: OrderProducer,
+    private readonly sharedRoleRepo: SharedRoleRepository
   ) {}
+
+  private async checkForAdmin(roleId?: number) {
+    const adminRoleId = await this.sharedRoleRepo.getAdminRoleId()
+    return roleId === adminRoleId
+  }
 
   async listOrders({ query, userId }: { query: GetOrderListQueryType; userId: number }): Promise<GetOrderListResType> {
     const { page, limit, status, getAll } = query
@@ -94,6 +101,14 @@ export class OrderRepo {
             endAt: {
               gte: new Date()
             }
+          },
+          include: {
+            createdBy: {
+              select: {
+                id: true,
+                roleId: true
+              }
+            }
           }
         })
       : null
@@ -108,13 +123,25 @@ export class OrderRepo {
       include: {
         course: {
           include: {
-            comboChildren: true
+            comboChildren: true,
+            createdBy: {
+              select: {
+                id: true,
+                roleId: true
+              }
+            }
           }
         }
       }
     })
     if (!cart) {
       throw new NotFoundException('Cart không tồn tại')
+    }
+    if (coupon) {
+      const isAdminCreate = await this.checkForAdmin(coupon.createdBy?.roleId)
+      if (!isAdminCreate && cart.course.createdById !== coupon.createdById) {
+        throw new ForbiddenException('Coupon không hợp lệ')
+      }
     }
     const totalPrice = getTotalPrice({
       coursePrice: cart.course.price,

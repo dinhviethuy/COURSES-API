@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import {
   CouponType,
   CreateCouponBodyType,
@@ -12,11 +12,20 @@ import {
 } from 'src/routes/coupon/coupon.model'
 import { CouponType as CouponTypeConstant } from 'src/shared/constants/counpon.constant'
 import { OrderBy } from 'src/shared/constants/other.constant'
+import { SharedRoleRepository } from 'src/shared/repositories/shared-role.repo'
 import { PrismaService } from 'src/shared/services/prisma.service'
 
 @Injectable()
 export class CouponRepo {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly sharedRoleRepo: SharedRoleRepository
+  ) {}
+
+  private async checkForAdmin(roleId?: number) {
+    const adminRoleId = await this.sharedRoleRepo.getAdminRoleId()
+    return roleId === adminRoleId
+  }
 
   async validateCoupon({ code, courseId }: GetValidateCouponBodyType): Promise<GetValidateCouponResType> {
     const data = new Date()
@@ -32,6 +41,14 @@ export class CouponRepo {
           endAt: {
             gte: data
           }
+        },
+        include: {
+          createdBy: {
+            select: {
+              id: true,
+              roleId: true
+            }
+          }
         }
       }),
       this.prisma.course.findUnique({
@@ -39,6 +56,14 @@ export class CouponRepo {
           id: courseId,
           deletedAt: null,
           isDraft: false
+        },
+        include: {
+          createdBy: {
+            select: {
+              id: true,
+              roleId: true
+            }
+          }
         }
       })
     ])
@@ -47,6 +72,10 @@ export class CouponRepo {
     }
     if (!course) {
       throw new NotFoundException('Khóa học không tồn tại')
+    }
+    const isAdminCreate = await this.checkForAdmin(coupon.createdBy?.roleId)
+    if (!isAdminCreate && coupon.createdById !== course.createdBy?.id) {
+      throw new ForbiddenException('Coupon không hợp lệ')
     }
     const coursePrice = course.price * ((100 - course.discount) / 100)
     let discountAmount = 0
@@ -63,10 +92,12 @@ export class CouponRepo {
     }
   }
 
-  async getCoupons(): Promise<GetCouponListResType> {
+  async getCoupons({ userId, roleId }: { userId: number; roleId: number }): Promise<GetCouponListResType> {
+    const isAdmin = await this.checkForAdmin(roleId)
     const coupons = await this.prisma.coupon.findMany({
       where: {
-        deletedAt: null
+        deletedAt: null,
+        createdById: isAdmin ? undefined : userId
       },
       orderBy: {
         createdAt: OrderBy.Desc
@@ -77,11 +108,21 @@ export class CouponRepo {
     }
   }
 
-  getCoupon(couponId: number): Promise<GetCouponDetailResType | null> {
+  async getCoupon({
+    couponId,
+    userId,
+    roleId
+  }: {
+    couponId: number
+    userId: number
+    roleId: number
+  }): Promise<GetCouponDetailResType | null> {
+    const isAdmin = await this.checkForAdmin(roleId)
     return this.prisma.coupon.findUnique({
       where: {
         id: couponId,
-        deletedAt: null
+        deletedAt: null,
+        createdById: isAdmin ? undefined : userId
       }
     })
   }
@@ -101,19 +142,23 @@ export class CouponRepo {
     })
   }
 
-  updateCoupon({
+  async updateCoupon({
     data,
     updatedById,
-    couponId
+    couponId,
+    roleId
   }: {
     data: UpdateCouponBodyType
     updatedById: number
     couponId: number
+    roleId: number
   }): Promise<UpdateCouponResType> {
+    const isAdmin = await this.checkForAdmin(roleId)
     return this.prisma.coupon.update({
       where: {
         id: couponId,
-        deletedAt: null
+        deletedAt: null,
+        createdById: isAdmin ? undefined : updatedById
       },
       data: {
         ...data,
@@ -122,20 +167,23 @@ export class CouponRepo {
     })
   }
 
-  deleteCoupon(
-    { couponId, deletedById }: { couponId: number; deletedById: number },
+  async deleteCoupon(
+    { couponId, deletedById, roleId }: { couponId: number; deletedById: number; roleId: number },
     isHard?: boolean
   ): Promise<CouponType> {
+    const isAdmin = await this.checkForAdmin(roleId)
     return isHard
       ? this.prisma.coupon.delete({
           where: {
-            id: couponId
+            id: couponId,
+            createdById: isAdmin ? undefined : deletedById
           }
         })
       : this.prisma.coupon.update({
           where: {
             id: couponId,
-            deletedAt: null
+            deletedAt: null,
+            createdById: isAdmin ? undefined : deletedById
           },
           data: {
             deletedById,

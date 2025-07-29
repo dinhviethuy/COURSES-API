@@ -7,17 +7,25 @@ import { isNotFoundPrismaError, isUniqueConstraintPrismaError } from 'src/shared
 export class CouponService {
   constructor(private readonly couponRepo: CouponRepo) {}
 
-  validateCoupon(body: GetValidateCouponBodyType) {
-    return this.couponRepo.validateCoupon(body)
-  }
-
-  getCoupons() {
-    return this.couponRepo.getCoupons()
-  }
-
-  async getCoupon(couponId: number) {
+  async validateCoupon(body: GetValidateCouponBodyType) {
     try {
-      const coupon = await this.couponRepo.getCoupon(couponId)
+      const coupon = await this.couponRepo.validateCoupon(body)
+      return coupon
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error
+      }
+      throw new BadRequestException('Lỗi khi validate coupon')
+    }
+  }
+
+  getCoupons({ roleId, userId }: { roleId: number; userId: number }) {
+    return this.couponRepo.getCoupons({ roleId, userId })
+  }
+
+  async getCoupon({ couponId, roleId, userId }: { couponId: number; roleId: number; userId: number }) {
+    try {
+      const coupon = await this.couponRepo.getCoupon({ couponId, roleId, userId })
       if (!coupon) {
         throw new NotFoundException('Coupon không tồn tại')
       }
@@ -45,14 +53,16 @@ export class CouponService {
   async updateCoupon({
     couponId,
     body,
-    updatedById
+    updatedById,
+    roleId
   }: {
     couponId: number
     body: UpdateCouponBodyType
     updatedById: number
+    roleId: number
   }) {
     try {
-      const coupon = await this.couponRepo.updateCoupon({ couponId, data: body, updatedById })
+      const coupon = await this.couponRepo.updateCoupon({ couponId, data: body, updatedById, roleId })
       return coupon
     } catch (error) {
       if (isUniqueConstraintPrismaError(error)) {
@@ -65,9 +75,9 @@ export class CouponService {
     }
   }
 
-  async deleteCoupon({ couponId, deletedById }: { couponId: number; deletedById: number }) {
+  async deleteCoupon({ couponId, deletedById, roleId }: { couponId: number; deletedById: number; roleId: number }) {
     try {
-      await this.couponRepo.deleteCoupon({ couponId, deletedById })
+      await this.couponRepo.deleteCoupon({ couponId, deletedById, roleId })
       return true
     } catch (error) {
       if (isNotFoundPrismaError(error)) {

@@ -25,12 +25,27 @@ export class OrderService {
     }
   }
 
-  createOrder({ body, userId }: { body: CreateOrderBodyType; userId: number }): Promise<CreateOrderResType> {
-    return this.orderRepo.createOrder({ body, userId })
+  async createOrder({ body, userId }: { body: CreateOrderBodyType; userId: number }): Promise<CreateOrderResType> {
+    try {
+      const order = await this.orderRepo.createOrder({ body, userId })
+      return order
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error
+      }
+      throw new BadRequestException('Lỗi khi tạo đơn hàng')
+    }
   }
 
   async cancelOrder({ orderId, userId }: { orderId: number; userId: number }) {
-    await this.orderRepo.cancelOrder({ orderId, userId })
-    return true
+    try {
+      await this.orderRepo.cancelOrder({ orderId, userId })
+      return true
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error
+      }
+      throw new BadRequestException('Lỗi khi hủy đơn hàng')
+    }
   }
 }

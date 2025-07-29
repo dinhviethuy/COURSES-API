@@ -14,6 +14,7 @@ import {
 import { CouponService } from 'src/routes/coupon/coupon.service'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { MessageRes } from 'src/shared/decorators/message.decorator'
+import { SessionTokenPayload } from 'src/shared/types/jwt.type'
 
 @Controller('coupons')
 export class CouponController {
@@ -29,15 +30,22 @@ export class CouponController {
   @Get()
   @MessageRes('Lấy danh sách coupon thành công')
   @ZodSerializerDto(GetCouponListResDTO)
-  getCoupons() {
-    return this.couponService.getCoupons()
+  getCoupons(@ActiveUser() user: SessionTokenPayload) {
+    return this.couponService.getCoupons({
+      roleId: user.roleId,
+      userId: user.userId
+    })
   }
 
   @Get(':couponId')
   @MessageRes('Lấy chi tiết coupon thành công')
   @ZodSerializerDto(GetCouponDetailResDTO)
-  getCoupon(@Param() params: GetCouponParamsDTO) {
-    return this.couponService.getCoupon(params.couponId)
+  getCoupon(@Param() params: GetCouponParamsDTO, @ActiveUser() user: SessionTokenPayload) {
+    return this.couponService.getCoupon({
+      couponId: params.couponId,
+      roleId: user.roleId,
+      userId: user.userId
+    })
   }
 
   @Post()
@@ -53,14 +61,23 @@ export class CouponController {
   updateCoupon(
     @Param() params: GetCouponParamsDTO,
     @Body() body: UpdateCouponBodyDTO,
-    @ActiveUser('userId') userId: number
+    @ActiveUser() user: SessionTokenPayload
   ) {
-    return this.couponService.updateCoupon({ couponId: params.couponId, body, updatedById: userId })
+    return this.couponService.updateCoupon({
+      couponId: params.couponId,
+      body,
+      updatedById: user.userId,
+      roleId: user.roleId
+    })
   }
 
   @Delete(':couponId')
   @MessageRes('Xóa coupon thành công')
-  deleteCoupon(@Param() params: GetCouponParamsDTO, @ActiveUser('userId') userId: number) {
-    return this.couponService.deleteCoupon({ couponId: params.couponId, deletedById: userId })
+  deleteCoupon(@Param() params: GetCouponParamsDTO, @ActiveUser() user: SessionTokenPayload) {
+    return this.couponService.deleteCoupon({
+      couponId: params.couponId,
+      deletedById: user.userId,
+      roleId: user.roleId
+    })
   }
 }

@@ -28,7 +28,9 @@ export class PermissionController {
       method: query.method,
       module: query.module,
       name: query.name,
-      path: query.path
+      path: query.path,
+      orderBy: query.orderBy,
+      sortBy: query.sortBy
     })
   }
 

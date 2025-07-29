@@ -1,3 +1,4 @@
+import { OrderBy, SortBy } from 'src/shared/constants/other.constant'
 import { HTTPMethod } from 'src/shared/constants/role.constant'
 import { PermissionSchema } from 'src/shared/models/shared-permission.model'
 import { z } from 'zod'
@@ -35,7 +36,9 @@ export const GetPermissionsQuerySchema = z
       ])
       .optional(),
     path: z.string().optional(),
-    name: z.string().optional()
+    name: z.string().optional(),
+    orderBy: z.enum([OrderBy.Asc, OrderBy.Desc]).default(OrderBy.Desc),
+    sortBy: z.enum([SortBy.CreatedAt, SortBy.Name]).default(SortBy.CreatedAt)
   })
   .strict()
 

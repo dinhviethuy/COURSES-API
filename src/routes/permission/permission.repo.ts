@@ -7,6 +7,7 @@ import {
   GetPermissionsResType,
   UpdatePermissionBodyType
 } from 'src/routes/permission/permission.model'
+import { SortBy } from 'src/shared/constants/other.constant'
 import { PermissionType } from 'src/shared/models/shared-permission.model'
 import { PrismaService } from 'src/shared/services/prisma.service'
 
@@ -41,15 +42,24 @@ export class PermissionRepo {
         mode: 'insensitive'
       }
     }
+    let caculatedOrderBy: Prisma.PermissionOrderByWithRelationInput | Prisma.PermissionOrderByWithRelationInput[] = {
+      createdAt: pagination.orderBy
+    }
+    if (pagination.sortBy === SortBy.Name) {
+      caculatedOrderBy = {
+        name: pagination.orderBy
+      }
+    }
     return {
       where,
       skip: pagination.limit * (pagination.page - 1),
-      take: pagination.getAll ? undefined : pagination.limit
+      take: pagination.getAll ? undefined : pagination.limit,
+      orderBy: caculatedOrderBy
     }
   }
 
   async list(pagination: GetPermissionsQueryType): Promise<GetPermissionsResType> {
-    const { where, skip, take } = this.generateWhereClause(pagination)
+    const { where, skip, take, orderBy } = this.generateWhereClause(pagination)
     const [totalItems, permissions] = await Promise.all([
       this.prismaService.permission.count({
         where
@@ -59,7 +69,8 @@ export class PermissionRepo {
           skip,
           take
         }),
-        where
+        where,
+        orderBy
       })
     ])
     return {
@@ -155,6 +166,9 @@ export class PermissionRepo {
 
   async getModules(): Promise<GetModulesResType> {
     const modules = await this.prismaService.permission.findMany({
+      where: {
+        deletedAt: null
+      },
       select: {
         module: true
       },

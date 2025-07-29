@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/
 import { ZodSerializerDto } from 'nestjs-zod'
 import {
   CreatePermissionBodyDTO,
+  GetModulesResDTO,
   GetPermissionDetailResDTO,
   GetPermissionParamsDTO,
   GetPermissionsQueryDTO,
@@ -23,8 +24,19 @@ export class PermissionController {
     return this.permissionService.list({
       page: query.page,
       limit: query.limit,
-      getAll: query.getAll
+      getAll: query.getAll,
+      method: query.method,
+      module: query.module,
+      name: query.name,
+      path: query.path
     })
+  }
+
+  @Get('/modules')
+  @MessageRes('Lấy danh sách module thành công')
+  @ZodSerializerDto(GetModulesResDTO)
+  getModules() {
+    return this.permissionService.getModules()
   }
 
   @Get(':permissionId')

@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common'
+import { Prisma } from '@prisma/client'
 import {
   CreatePermissionBodyType,
+  GetModulesResType,
   GetPermissionsQueryType,
   GetPermissionsResType,
   UpdatePermissionBodyType
@@ -12,23 +14,52 @@ import { PrismaService } from 'src/shared/services/prisma.service'
 export class PermissionRepo {
   constructor(private readonly prismaService: PrismaService) {}
 
+  private generateWhereClause(pagination: GetPermissionsQueryType) {
+    const where: Prisma.PermissionWhereInput = {
+      deletedAt: null
+    }
+    if (pagination.module) {
+      where.module = {
+        contains: pagination.module,
+        mode: 'insensitive'
+      }
+    }
+    if (pagination.method) {
+      where.method = {
+        equals: pagination.method
+      }
+    }
+    if (pagination.path) {
+      where.path = {
+        contains: pagination.path,
+        mode: 'insensitive'
+      }
+    }
+    if (pagination.name) {
+      where.name = {
+        contains: pagination.name,
+        mode: 'insensitive'
+      }
+    }
+    return {
+      where,
+      skip: pagination.limit * (pagination.page - 1),
+      take: pagination.getAll ? undefined : pagination.limit
+    }
+  }
+
   async list(pagination: GetPermissionsQueryType): Promise<GetPermissionsResType> {
-    const skip = (pagination.page - 1) * pagination.limit
-    const take = pagination.limit
+    const { where, skip, take } = this.generateWhereClause(pagination)
     const [totalItems, permissions] = await Promise.all([
       this.prismaService.permission.count({
-        where: {
-          deletedAt: null
-        }
+        where
       }),
       this.prismaService.permission.findMany({
         ...(!pagination.getAll && {
           skip,
           take
         }),
-        where: {
-          deletedAt: null
-        }
+        where
       })
     ])
     return {
@@ -120,5 +151,17 @@ export class PermissionRepo {
             roles: true
           }
         })
+  }
+
+  async getModules(): Promise<GetModulesResType> {
+    const modules = await this.prismaService.permission.findMany({
+      select: {
+        module: true
+      },
+      distinct: ['module']
+    })
+    return {
+      modules
+    }
   }
 }

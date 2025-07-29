@@ -68,4 +68,8 @@ export class PermissionService {
       throw error
     }
   }
+
+  getModules() {
+    return this.permissionRepo.getModules()
+  }
 }

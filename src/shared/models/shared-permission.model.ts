@@ -3,9 +3,9 @@ import { z } from 'zod'
 
 export const PermissionSchema = z.object({
   id: z.number(),
-  name: z.string().max(500),
-  path: z.string().max(1000),
-  module: z.string().max(500),
+  name: z.string().min(1).max(500),
+  path: z.string().min(1).max(1000),
+  module: z.string().min(1).max(500),
   method: z.enum([
     HTTPMethod.GET,
     HTTPMethod.POST,

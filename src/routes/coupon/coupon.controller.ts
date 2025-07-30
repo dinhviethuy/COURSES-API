@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common'
 import { ZodSerializerDto } from 'nestjs-zod'
 import {
   CreateCouponBodyDTO,
@@ -6,6 +6,7 @@ import {
   GetCouponDetailResDTO,
   GetCouponListResDTO,
   GetCouponParamsDTO,
+  GetCouponsQueryDTO,
   GetValidateCouponBodyDTO,
   GetValidateCouponResDTO,
   UpdateCouponBodyDTO,
@@ -30,10 +31,11 @@ export class CouponController {
   @Get()
   @MessageRes('Lấy danh sách coupon thành công')
   @ZodSerializerDto(GetCouponListResDTO)
-  getCoupons(@ActiveUser() user: SessionTokenPayload) {
+  getCoupons(@Query() query: GetCouponsQueryDTO, @ActiveUser() user: SessionTokenPayload) {
     return this.couponService.getCoupons({
       roleId: user.roleId,
-      userId: user.userId
+      userId: user.userId,
+      query
     })
   }
 

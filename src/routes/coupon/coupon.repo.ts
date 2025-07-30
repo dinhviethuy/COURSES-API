@@ -1,17 +1,18 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
+import { Prisma } from '@prisma/client'
 import {
   CouponType,
   CreateCouponBodyType,
   CreateCouponResType,
   GetCouponDetailResType,
   GetCouponListResType,
+  GetCouponsQueryType,
   GetValidateCouponBodyType,
   GetValidateCouponResType,
   UpdateCouponBodyType,
   UpdateCouponResType
 } from 'src/routes/coupon/coupon.model'
 import { CouponType as CouponTypeConstant } from 'src/shared/constants/counpon.constant'
-import { OrderBy } from 'src/shared/constants/other.constant'
 import { SharedRoleRepository } from 'src/shared/repositories/shared-role.repo'
 import { PrismaService } from 'src/shared/services/prisma.service'
 
@@ -25,6 +26,42 @@ export class CouponRepo {
   private async checkForAdmin(roleId?: number) {
     const adminRoleId = await this.sharedRoleRepo.getAdminRoleId()
     return roleId === adminRoleId
+  }
+
+  private async generateQuery({
+    query,
+    userId,
+    roleId
+  }: {
+    query: GetCouponsQueryType
+    userId: number
+    roleId: number
+  }) {
+    const isAdmin = await this.checkForAdmin(roleId)
+    const { page, limit, search, couponType, isActive, orderBy, sortBy } = query
+    const where: Prisma.CouponWhereInput = {
+      deletedAt: null,
+      createdById: isAdmin ? undefined : userId,
+      isActive
+    }
+    if (search) {
+      where.code = {
+        contains: search,
+        mode: 'insensitive'
+      }
+    }
+    if (couponType) {
+      where.couponType = couponType
+    }
+    const caculatedOrderBy: Prisma.CouponOrderByWithRelationInput = {
+      [sortBy]: orderBy
+    }
+    return {
+      where,
+      orderBy: caculatedOrderBy,
+      skip: (page - 1) * limit,
+      take: limit
+    }
   }
 
   async validateCoupon({ code, courseId }: GetValidateCouponBodyType): Promise<GetValidateCouponResType> {
@@ -92,19 +129,33 @@ export class CouponRepo {
     }
   }
 
-  async getCoupons({ userId, roleId }: { userId: number; roleId: number }): Promise<GetCouponListResType> {
-    const isAdmin = await this.checkForAdmin(roleId)
-    const coupons = await this.prisma.coupon.findMany({
-      where: {
-        deletedAt: null,
-        createdById: isAdmin ? undefined : userId
-      },
-      orderBy: {
-        createdAt: OrderBy.Desc
-      }
-    })
+  async getCoupons({
+    userId,
+    roleId,
+    query
+  }: {
+    userId: number
+    roleId: number
+    query: GetCouponsQueryType
+  }): Promise<GetCouponListResType> {
+    const { where, orderBy, skip, take } = await this.generateQuery({ query, userId, roleId })
+    const [coupons, totalItems] = await Promise.all([
+      this.prisma.coupon.findMany({
+        where,
+        orderBy,
+        skip,
+        take
+      }),
+      this.prisma.coupon.count({
+        where
+      })
+    ])
     return {
-      coupons
+      coupons,
+      totalItems,
+      page: query.page,
+      limit: query.limit,
+      totalPages: Math.ceil(totalItems / query.limit)
     }
   }
 

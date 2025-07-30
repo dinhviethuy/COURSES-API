@@ -1,5 +1,10 @@
 import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common'
-import { CreateCouponBodyType, GetValidateCouponBodyType, UpdateCouponBodyType } from 'src/routes/coupon/coupon.model'
+import {
+  CreateCouponBodyType,
+  GetCouponsQueryType,
+  GetValidateCouponBodyType,
+  UpdateCouponBodyType
+} from 'src/routes/coupon/coupon.model'
 import { CouponRepo } from 'src/routes/coupon/coupon.repo'
 import { isNotFoundPrismaError, isUniqueConstraintPrismaError } from 'src/shared/helpers'
 
@@ -19,8 +24,8 @@ export class CouponService {
     }
   }
 
-  getCoupons({ roleId, userId }: { roleId: number; userId: number }) {
-    return this.couponRepo.getCoupons({ roleId, userId })
+  getCoupons({ roleId, userId, query }: { roleId: number; userId: number; query: GetCouponsQueryType }) {
+    return this.couponRepo.getCoupons({ roleId, userId, query })
   }
 
   async getCoupon({ couponId, roleId, userId }: { couponId: number; roleId: number; userId: number }) {

@@ -5,6 +5,7 @@ import {
   GetCouponDetailResSchema,
   GetCouponListResSchema,
   GetCouponParamsSchema,
+  GetCouponsQuerySchema,
   GetValidateCouponBodySchema,
   GetValidateCouponResSchema,
   UpdateCouponBodySchema,
@@ -28,3 +29,5 @@ export class GetCouponListResDTO extends createZodDto(GetCouponListResSchema) {}
 export class GetValidateCouponResDTO extends createZodDto(GetValidateCouponResSchema) {}
 
 export class GetValidateCouponBodyDTO extends createZodDto(GetValidateCouponBodySchema) {}
+
+export class GetCouponsQueryDTO extends createZodDto(GetCouponsQuerySchema) {}

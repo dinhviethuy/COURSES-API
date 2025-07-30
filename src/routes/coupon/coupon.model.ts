@@ -1,4 +1,5 @@
 import { CouponType as CouponTypeConstant } from 'src/shared/constants/counpon.constant'
+import { OrderBy, SortBy } from 'src/shared/constants/other.constant'
 import { z } from 'zod'
 
 export const CouponSchema = z.object({
@@ -18,6 +19,27 @@ export const CouponSchema = z.object({
   deletedById: z.number().nullable()
 })
 
+export const GetCouponsQuerySchema = z
+  .object({
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().positive().default(10),
+    search: z.string().optional(),
+    couponType: z.enum([CouponTypeConstant.PERCENT, CouponTypeConstant.FIXED]).optional(),
+    isActive: z.preprocess((value) => {
+      if (typeof value === 'string') {
+        const lowered = value.trim().toLowerCase()
+        if (lowered === 'true') return true
+        if (lowered === 'false') return false
+        return undefined
+      }
+      if (typeof value === 'boolean') return value
+      return undefined
+    }, z.boolean().optional()),
+    orderBy: z.enum([OrderBy.Asc, OrderBy.Desc]).default(OrderBy.Desc),
+    sortBy: z.enum([SortBy.CreatedAt]).default(SortBy.CreatedAt)
+  })
+  .strict()
+
 export const CreateCouponBodySchema = CouponSchema.pick({
   code: true,
   discount: true,
@@ -28,27 +50,6 @@ export const CreateCouponBodySchema = CouponSchema.pick({
 })
   .strict()
   .superRefine((data, ctx) => {
-    if (data.startAt >= data.endAt) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Ngày bắt đầu phải nhỏ hơn ngày kết thúc',
-        path: ['startAt']
-      })
-    }
-    if (data.startAt < new Date()) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Ngày bắt đầu phải lớn hơn ngày hiện tại',
-        path: ['startAt']
-      })
-    }
-    if (data.endAt < new Date()) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Ngày kết thúc phải lớn hơn ngày hiện tại',
-        path: ['endAt']
-      })
-    }
     if (data.couponType === CouponTypeConstant.PERCENT) {
       if (data.discount > 100) {
         ctx.addIssue({
@@ -91,7 +92,11 @@ export const GetCouponParamsSchema = z.object({
 export const GetCouponDetailResSchema = CouponSchema
 
 export const GetCouponListResSchema = z.object({
-  coupons: z.array(CouponSchema)
+  coupons: z.array(CouponSchema),
+  totalItems: z.number(),
+  page: z.number(),
+  limit: z.number(),
+  totalPages: z.number()
 })
 
 export const GetValidateCouponBodySchema = z
@@ -118,3 +123,4 @@ export type GetCouponDetailResType = z.infer<typeof GetCouponDetailResSchema>
 export type GetCouponListResType = z.infer<typeof GetCouponListResSchema>
 export type GetValidateCouponResType = z.infer<typeof GetValidateCouponResSchema>
 export type GetValidateCouponBodyType = z.infer<typeof GetValidateCouponBodySchema>
+export type GetCouponsQueryType = z.infer<typeof GetCouponsQuerySchema>

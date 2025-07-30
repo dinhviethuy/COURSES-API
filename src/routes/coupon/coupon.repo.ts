@@ -142,6 +142,15 @@ export class CouponRepo {
     const [coupons, totalItems] = await Promise.all([
       this.prisma.coupon.findMany({
         where,
+        include: {
+          createdBy: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true
+            }
+          }
+        },
         orderBy,
         skip,
         take
@@ -174,6 +183,15 @@ export class CouponRepo {
         id: couponId,
         deletedAt: null,
         createdById: isAdmin ? undefined : userId
+      },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true
+          }
+        }
       }
     })
   }

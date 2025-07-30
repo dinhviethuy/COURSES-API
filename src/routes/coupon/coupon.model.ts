@@ -1,5 +1,6 @@
 import { CouponType as CouponTypeConstant } from 'src/shared/constants/counpon.constant'
 import { OrderBy, SortBy } from 'src/shared/constants/other.constant'
+import { UserSchema } from 'src/shared/models/shared-user.model'
 import { z } from 'zod'
 
 export const CouponSchema = z.object({
@@ -89,10 +90,17 @@ export const GetCouponParamsSchema = z.object({
   couponId: z.coerce.number().int().positive()
 })
 
-export const GetCouponDetailResSchema = CouponSchema
-
+export const GetCouponDetailResSchema = CouponSchema.extend({
+  createdBy: UserSchema.pick({
+    id: true,
+    fullName: true,
+    email: true
+  })
+    .nullable()
+    .optional()
+})
 export const GetCouponListResSchema = z.object({
-  coupons: z.array(CouponSchema),
+  coupons: z.array(GetCouponDetailResSchema),
   totalItems: z.number(),
   page: z.number(),
   limit: z.number(),

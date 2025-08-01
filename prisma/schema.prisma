@@ -79,8 +79,6 @@ model User {
   courses       Course[]   @relation("CourseCreators")
   updatedCourses Course[]  @relation("CourseUpdatedUsers")
   deletedCourses Course[]  @relation("CourseDeletedUsers")
-  chapters      Chapter[]  @relation("ChapterCreators")
-  lessons       Lesson[]   @relation("LessonCreators")
   courseEnrollments CourseEnrollment[]
   coupons         Coupon[]  @relation("CouponCreatedUsers")
   updatedCoupons  Coupon[]  @relation("CouponUpdatedUsers")
@@ -93,6 +91,18 @@ model User {
   createdOrders Order[]     @relation("OrderCreatedUsers")
   updatedOrders Order[]     @relation("OrderUpdatedUsers")
   deletedOrders Order[]     @relation("OrderDeletedUsers")
+
+  createdCourseEnrollments CourseEnrollment[] @relation("CourseEnrollmentCreatedUsers")
+  updatedCourseEnrollments CourseEnrollment[] @relation("CourseEnrollmentUpdatedUsers")
+  deletedCourseEnrollments CourseEnrollment[] @relation("CourseEnrollmentDeletedUsers")
+
+  createdChapters Chapter[] @relation("ChapterCreators")
+  updatedChapters Chapter[] @relation("ChapterUpdatedUsers")
+  deletedChapters Chapter[] @relation("ChapterDeletedUsers")
+
+  createdLessons Lesson[] @relation("LessonCreators")
+  updatedLessons Lesson[] @relation("LessonUpdatedUsers")
+  deletedLessons Lesson[] @relation("LessonDeletedUsers")
 
   @@index([email])
   @@index([status])
@@ -197,7 +207,9 @@ model Chapter {
 
   createdBy     User?     @relation("ChapterCreators", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   createdById   Int?
+  updatedBy     User?     @relation("ChapterUpdatedUsers", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   updatedById   Int?
+  deletedBy     User?     @relation("ChapterDeletedUsers", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   deletedById   Int?
 
   lessons       Lesson[]
@@ -221,7 +233,9 @@ model Lesson {
 
   createdBy     User?     @relation("LessonCreators", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   createdById   Int?
+  updatedBy     User?     @relation("LessonUpdatedUsers", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   updatedById   Int?
+  deletedBy     User?     @relation("LessonDeletedUsers", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
   deletedById   Int?
 
   createdAt     DateTime  @default(now())
@@ -239,10 +253,17 @@ model CourseEnrollment {
 
   status        CourseEnrollmentStatus @default(ACTIVE)
 
+  createdBy     User?     @relation("CourseEnrollmentCreatedUsers", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  createdById   Int?
+  updatedBy     User?     @relation("CourseEnrollmentUpdatedUsers", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  updatedById   Int?
+  deletedBy     User?     @relation("CourseEnrollmentDeletedUsers", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deletedById   Int?
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
 
-  @@unique([courseId, userId])
   @@index([status])
 }
 

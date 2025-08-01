@@ -186,20 +186,22 @@ export class OrderRepo {
           .map((child) => child.id)
         courseIds.push(cart.courseId)
         for (const id of courseIds) {
-          await tx.courseEnrollment.upsert({
+          const courseEnrollment = await tx.courseEnrollment.findFirst({
             where: {
-              courseId_userId: {
-                courseId: id,
-                userId
-              }
-            },
-            update: {},
-            create: {
-              userId,
               courseId: id,
-              status: CourseEnrollmentStatus.ACTIVE
+              userId
             }
           })
+          if (!courseEnrollment) {
+            await tx.courseEnrollment.create({
+              data: {
+                userId,
+                courseId: id,
+                status: CourseEnrollmentStatus.ACTIVE,
+                createdById: userId
+              }
+            })
+          }
         }
         this.server.to(generateRoomId(userId)).emit('payment', {
           status: 'success',

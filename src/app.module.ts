@@ -18,6 +18,7 @@ import { PaymentModule } from 'src/routes/payment/payment.module'
 import { PermissionModule } from 'src/routes/permission/permission.module'
 import { ProfileModule } from 'src/routes/profile/profile.module'
 import { RoleModule } from 'src/routes/role/role.module'
+import { StudentModule } from 'src/routes/student/student.module'
 import { UserModule } from 'src/routes/user/user.module'
 import { envConfig } from 'src/shared/config'
 import { HttpExceptionFilter } from 'src/shared/filters/http-exception.filter'
@@ -48,7 +49,8 @@ import { WebSocketModule } from 'src/websockets/websocket.module'
     CartModule,
     OrderModule,
     PaymentModule,
-    WebSocketModule
+    WebSocketModule,
+    StudentModule
   ],
   controllers: [AppController],
   providers: [

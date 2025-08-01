@@ -22,11 +22,18 @@ export const CourseEnrollmentSchema = z.object({
 
 export const CreateCourseEnrollmentBodySchema = CourseEnrollmentSchema.pick({
   courseId: true,
-  userId: true,
   status: true
-}).strict()
+})
+  .strict()
+  .extend({
+    userIds: z.array(z.number())
+  })
 
-export const UpdateCourseEnrollmentBodySchema = CreateCourseEnrollmentBodySchema
+export const UpdateCourseEnrollmentBodySchema = CourseEnrollmentSchema.pick({
+  courseId: true,
+  status: true,
+  userId: true
+})
 
 export const GetCourseEnrollmentParamsSchema = z
   .object({
@@ -55,7 +62,9 @@ export const GetCourseEnrollmentDetailResSchema = CourseEnrollmentSchema.extend(
   })
 })
 
-export const CreateCourseEnrollmentResSchema = GetCourseEnrollmentDetailResSchema
+export const CreateCourseEnrollmentResSchema = z.object({
+  courseEnrollments: z.array(GetCourseEnrollmentDetailResSchema)
+})
 export const UpdateCourseEnrollmentResSchema = GetCourseEnrollmentDetailResSchema
 
 export const GetCourseEnrollmentListResSchema = z.object({
@@ -84,6 +93,8 @@ export const GetCourseEnrollmentQuerySchema = z.object({
     },
     z.enum([CourseEnrollmentStatus.ACTIVE, CourseEnrollmentStatus.BLOCKED]).optional()
   ),
+  courseId: z.coerce.number().int().positive().optional(),
+  userId: z.coerce.number().int().positive().optional(),
   fullName: z.string().optional(),
   email: z.string().optional(),
   titleCourse: z.string().optional(),

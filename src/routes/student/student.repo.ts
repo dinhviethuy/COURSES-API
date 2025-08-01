@@ -38,7 +38,19 @@ export class StudentRepo {
   }) {
     const isAdmin = await this.checkForAdmin(roleId)
 
-    const { fullName, email, titleCourse, getAll, limit, orderBy, page, sortBy, status } = query
+    const {
+      fullName,
+      email,
+      titleCourse,
+      getAll,
+      limit,
+      orderBy,
+      page,
+      sortBy,
+      status,
+      courseId,
+      userId: userIdQuery
+    } = query
     const skip = limit * (page - 1)
     const take = limit
     const where: Prisma.CourseEnrollmentWhereInput = {
@@ -47,6 +59,12 @@ export class StudentRepo {
         createdById: isAdmin ? undefined : userId
       },
       status: status ? status : undefined
+    }
+    if (courseId) {
+      where.courseId = courseId
+    }
+    if (userIdQuery) {
+      where.userId = userIdQuery
     }
     if (fullName) {
       where.user = {
@@ -219,36 +237,22 @@ export class StudentRepo {
   private async checkCourseAndUserExist({
     courseId,
     createdById,
-    roleId,
-    userId
+    roleId
   }: {
     courseId: number
     createdById: number
     roleId: number
-    userId: number
   }) {
     const isAdmin = await this.checkForAdmin(roleId)
-    const [course, user] = await Promise.all([
-      this.prismaService.course.findUnique({
-        where: {
-          id: courseId,
-          deletedAt: null,
-          createdById: isAdmin ? undefined : createdById
-        }
-      }),
-      this.prismaService.user.findUnique({
-        where: {
-          id: userId,
-          deletedAt: null,
-          status: UserStatus.ACTIVE
-        }
-      })
-    ])
+    const course = await this.prismaService.course.findUnique({
+      where: {
+        id: courseId,
+        deletedAt: null,
+        createdById: isAdmin ? undefined : createdById
+      }
+    })
     if (!course) {
       throw new NotFoundException('Khóa học không tồn tại')
-    }
-    if (!user) {
-      throw new NotFoundException('Người dùng không tồn tại')
     }
   }
 
@@ -263,38 +267,85 @@ export class StudentRepo {
   }): Promise<CreateCourseEnrollmentResType> {
     await this.checkCourseAndUserExist({
       courseId: data.courseId,
-      userId: data.userId,
       createdById,
       roleId
     })
-    return this.prismaService.courseEnrollment.create({
-      data: {
-        status: data.status,
-        course: {
-          connect: {
-            id: data.courseId
+    const [courseEnrollmentInDb, usersInDb] = await Promise.all([
+      this.prismaService.courseEnrollment.findMany({
+        where: {
+          courseId: data.courseId,
+          deletedAt: null,
+          user: {
+            deletedAt: null,
+            status: UserStatus.ACTIVE
           }
         },
-        user: {
-          connect: {
-            id: data.userId
-          }
-        },
-        createdBy: {
-          connect: {
-            id: createdById
+        select: {
+          id: true,
+          courseId: true,
+          userId: true
+        }
+      }),
+      this.prismaService.user.findMany({
+        where: {
+          deletedAt: null,
+          status: UserStatus.ACTIVE,
+          id: {
+            in: data.userIds
           }
         }
-      },
-      include: {
-        course: {
-          select: {
-            id: true,
-            title: true,
-            price: true,
-            discount: true,
-            image: true,
+      })
+    ])
+    const userSetInDb = new Set(usersInDb.map((u) => u.id))
+    const enrolledSet = new Set(courseEnrollmentInDb.map((e) => e.userId))
+
+    const userAddIds = data.userIds.filter((id) => userSetInDb.has(id) && !enrolledSet.has(id))
+    const userDelete = courseEnrollmentInDb
+      .filter((item) => !data.userIds.includes(item.userId))
+      .map((item) => ({
+        id: item.id,
+        courseId: item.courseId,
+        userId: item.userId
+      }))
+    const courseEnrollments = await this.prismaService.$transaction(async (tx) => {
+      const res: GetCourseEnrollmentDetailResType[] = []
+      for (const userId of userAddIds) {
+        const courseEnrollment = await tx.courseEnrollment.create({
+          data: {
+            course: {
+              connect: {
+                id: data.courseId
+              }
+            },
+            user: {
+              connect: {
+                id: userId
+              }
+            },
             createdBy: {
+              connect: {
+                id: createdById
+              }
+            }
+          },
+          include: {
+            course: {
+              select: {
+                id: true,
+                title: true,
+                price: true,
+                discount: true,
+                image: true,
+                createdBy: {
+                  select: {
+                    id: true,
+                    fullName: true,
+                    email: true
+                  }
+                }
+              }
+            },
+            user: {
               select: {
                 id: true,
                 fullName: true,
@@ -302,16 +353,27 @@ export class StudentRepo {
               }
             }
           }
-        },
-        user: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true
-          }
-        }
+        })
+        res.push(courseEnrollment)
       }
+      const deletedAt = new Date()
+      for (const item of userDelete) {
+        await tx.courseEnrollment.update({
+          where: {
+            ...item,
+            deletedAt: null
+          },
+          data: {
+            deletedAt,
+            deletedById: createdById
+          }
+        })
+      }
+      return res
     })
+    return {
+      courseEnrollments
+    }
   }
 
   async updateCourseEnrollment({
@@ -338,7 +400,6 @@ export class StudentRepo {
       }),
       this.checkCourseAndUserExist({
         courseId: data.courseId,
-        userId: data.userId,
         createdById: updatedById,
         roleId
       })

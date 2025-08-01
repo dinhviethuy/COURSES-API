@@ -8,7 +8,6 @@ export class RemoveSessionTokenCronjob {
   constructor(private readonly prismaService: PrismaService) {}
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
   async handleCron() {
-    console.log('1')
     const sessionTokens = await this.prismaService.sessionToken.deleteMany({
       where: {
         expiresAt: {

@@ -73,6 +73,9 @@ export class StudentService {
       if (isUniqueConstraintPrismaError(error)) {
         throw new BadRequestException('Học viên đã tồn tại')
       }
+      if (isNotFoundPrismaError(error)) {
+        throw new NotFoundException('Không tìm thấy học viên hoặc khóa học')
+      }
       throw new BadRequestException('Lỗi khi tạo học viên')
     }
   }

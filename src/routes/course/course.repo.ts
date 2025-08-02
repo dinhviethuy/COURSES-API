@@ -258,17 +258,39 @@ export class CourseRepo {
     const whereClause = this.buildWhereClause(where)
     const [courses, totalItems] = await Promise.all([
       isBought
-        ? this.prismaService.$queryRawUnsafe<CourseTypeModel[]>(
-            `
-            SELECT "Course".*
-            FROM "Course"
-            INNER JOIN "CourseEnrollment"
-              ON "Course"."id" = "CourseEnrollment"."courseId"
-              AND "CourseEnrollment"."userId" = $1
-            WHERE ${whereClause}
-            ${query.sortBy === SortBy.CreatedAt ? `ORDER BY "CourseEnrollment"."createdAt" ${query.orderBy}` : `ORDER BY "Course"."${query.sortBy}" ${query.orderBy}`}
-            LIMIT $2
-            OFFSET $3
+        ? this.prismaService.$queryRawUnsafe<ListCoursesResType['courses']>(
+            `SELECT 
+                "Course"."id",
+                "Course"."title",
+                "Course"."description",
+                "Course"."slug",
+                "Course"."price",
+                "Course"."isDraft",
+                "Course"."courseType",
+                "Course"."discount",
+                "Course"."image",
+                "Course"."createdAt",
+                "Course"."updatedAt",
+                json_build_object(
+                  'id', "User"."id",
+                  'fullName', "User"."fullName",
+                  'email', "User"."email"
+                ) AS "createdBy"
+              FROM "Course"
+              INNER JOIN "CourseEnrollment"
+                ON "Course"."id" = "CourseEnrollment"."courseId"
+                AND "CourseEnrollment"."userId" = $1
+                AND "CourseEnrollment"."deletedAt" IS NULL
+              INNER JOIN "User"
+                ON "Course"."createdById" = "User"."id"
+              WHERE ${whereClause}
+              ${
+                query.sortBy === SortBy.CreatedAt
+                  ? `ORDER BY "CourseEnrollment"."createdAt" ${query.orderBy}`
+                  : `ORDER BY "Course"."${query.sortBy}" ${query.orderBy}`
+              }
+              LIMIT $2
+              OFFSET $3
             `,
             userId,
             take,
@@ -278,7 +300,16 @@ export class CourseRepo {
             where,
             skip,
             take,
-            orderBy
+            orderBy,
+            include: {
+              createdBy: {
+                select: {
+                  id: true,
+                  fullName: true,
+                  email: true
+                }
+              }
+            }
           }),
       this.prismaService.course.count({
         where
@@ -315,7 +346,16 @@ export class CourseRepo {
           skip,
           take
         }),
-        orderBy
+        orderBy,
+        include: {
+          createdBy: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true
+            }
+          }
+        }
       }),
       this.prismaService.course.count({
         where
@@ -765,7 +805,8 @@ export class CourseRepo {
           courseEnrollments: {
             some: {
               userId,
-              status: CourseEnrollmentStatus.ACTIVE
+              status: CourseEnrollmentStatus.ACTIVE,
+              deletedAt: null
             }
           }
         }

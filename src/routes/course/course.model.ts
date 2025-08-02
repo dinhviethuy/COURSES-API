@@ -20,6 +20,12 @@ export const ListCoursesResSchema = z.object({
       image: true,
       createdAt: true,
       updatedAt: true
+    }).extend({
+      createdBy: UserSchema.pick({
+        id: true,
+        fullName: true,
+        email: true
+      }).nullable()
     })
   ),
   totalItems: z.number(),

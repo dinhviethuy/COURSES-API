@@ -21,6 +21,7 @@ export class SharedCourseEnrollmentRepository {
     return this.prismaService.courseEnrollment.findFirst({
       where: {
         ...where,
+        deletedAt: null,
         status: CourseEnrollmentStatus.ACTIVE,
         course: {
           deletedAt: null,

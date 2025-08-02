@@ -189,7 +189,8 @@ export class OrderRepo {
           const courseEnrollment = await tx.courseEnrollment.findFirst({
             where: {
               courseId: id,
-              userId
+              userId,
+              deletedAt: null
             }
           })
           if (!courseEnrollment) {

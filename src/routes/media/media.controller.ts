@@ -114,12 +114,12 @@ export class MediaController {
       const notFound = new NotFoundException('Không tìm thấy video')
       return res.status(notFound.getStatus()).json(notFound)
     }
-    res.setHeader('Content-Type', 'video/mp4')
-    res.setHeader('Accept-Ranges', 'bytes')
 
     const { size } = statSync(videoPath)
     const videoRange = headers.range
     if (videoRange) {
+      res.setHeader('Content-Type', 'video/mp4')
+      res.setHeader('Accept-Ranges', 'bytes')
       const parts = videoRange.replace(/bytes=/, '').split('-')
       const start = parseInt(parts[0], 10)
       const end = parts[1] ? parseInt(parts[1], 10) : size - 1
@@ -133,15 +133,23 @@ export class MediaController {
 
       const head = {
         'Content-Range': `bytes ${start}-${end}/${size}`,
-        'Content-Length': chunkSize
+        'Content-Length': chunkSize,
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate'
       }
       res.writeHead(HttpStatus.PARTIAL_CONTENT, head)
       readStreamfile.pipe(res)
     } else {
-      res.writeHead(HttpStatus.OK, {
-        'Content-Length': size
+      // throw new ForbiddenException('Không có quyền truy cập')
+      return res.json({
+        message: 'Không có quyền truy cập',
+        error: 'Forbidden',
+        statusCode: 403
       })
-      createReadStream(videoPath).pipe(res)
+      // res.writeHead(HttpStatus.OK, {
+      //   'Content-Length': size,
+      //   'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate'
+      // })
+      // createReadStream(videoPath).pipe(res)
     }
   }
 }

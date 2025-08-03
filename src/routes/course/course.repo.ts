@@ -167,12 +167,16 @@ export class CourseRepo {
         mode: 'insensitive'
       }
     }
-    if (minPrice) {
+    if (minPrice && maxPrice) {
+      where.price = {
+        gte: minPrice,
+        lte: maxPrice
+      }
+    } else if (minPrice) {
       where.price = {
         gte: minPrice
       }
-    }
-    if (maxPrice) {
+    } else if (maxPrice) {
       where.price = {
         lte: maxPrice
       }

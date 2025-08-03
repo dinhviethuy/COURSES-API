@@ -51,73 +51,78 @@ export class StudentRepo {
       courseId,
       userId: userIdQuery
     } = query
+
     const skip = limit * (page - 1)
     const take = limit
+
     const where: Prisma.CourseEnrollmentWhereInput = {
       deletedAt: null,
-      course: {
-        createdById: isAdmin ? undefined : userId
-      },
-      status: status ? status : undefined
+      status: status || undefined,
+      courseId: courseId || undefined,
+      userId: userIdQuery || undefined
     }
-    if (courseId) {
-      where.courseId = courseId
+
+    const courseConditions: Prisma.CourseWhereInput = {}
+    if (!isAdmin) {
+      courseConditions.createdById = userId
     }
-    if (userIdQuery) {
-      where.userId = userIdQuery
+    if (titleCourse) {
+      courseConditions.title = {
+        contains: titleCourse,
+        mode: 'insensitive'
+      }
     }
+    if (Object.keys(courseConditions).length > 0) {
+      where.course = courseConditions
+    }
+
+    const userConditions: Prisma.UserWhereInput[] = []
     if (fullName) {
-      where.user = {
+      userConditions.push({
         fullName: {
           contains: fullName,
           mode: 'insensitive'
         }
-      }
+      })
     }
     if (email) {
-      where.user = {
+      userConditions.push({
         email: {
           contains: email,
           mode: 'insensitive'
         }
+      })
+    }
+    if (userConditions.length > 0) {
+      where.user = {
+        AND: userConditions
       }
     }
 
-    if (titleCourse) {
-      where.course = {
-        title: {
-          contains: titleCourse,
-          mode: 'insensitive'
-        }
-      }
-    }
-
-    let caculatedOrderBy: Prisma.CourseEnrollmentOrderByWithRelationInput = {
+    let calculatedOrderBy: Prisma.CourseEnrollmentOrderByWithRelationInput = {
       createdAt: orderBy
     }
+
     if (sortBy === SortBy.FullName) {
-      caculatedOrderBy = {
+      calculatedOrderBy = {
         user: {
           fullName: orderBy
         }
       }
-    }
-    if (sortBy === SortBy.Email) {
-      caculatedOrderBy = {
+    } else if (sortBy === SortBy.Email) {
+      calculatedOrderBy = {
         user: {
           email: orderBy
         }
       }
-    }
-    if (sortBy === SortBy.Price) {
-      caculatedOrderBy = {
+    } else if (sortBy === SortBy.Price) {
+      calculatedOrderBy = {
         course: {
           price: orderBy
         }
       }
-    }
-    if (sortBy === SortBy.Sale) {
-      caculatedOrderBy = {
+    } else if (sortBy === SortBy.Sale) {
+      calculatedOrderBy = {
         course: {
           discount: orderBy
         }
@@ -128,7 +133,7 @@ export class StudentRepo {
       skip,
       take,
       where,
-      orderBy: caculatedOrderBy,
+      orderBy: calculatedOrderBy,
       getAll
     }
   }

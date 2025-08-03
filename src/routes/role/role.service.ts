@@ -42,12 +42,12 @@ export class RoleService {
   /**
    * Kiểm tra xem role có phải là 1 trong 3 role cơ bản không
    */
-  private async verifyRole(roleId: number) {
+  private async verifyRole(roleId: number, roleName?: string[]) {
     const role = await this.roleRepo.findById(roleId)
     if (!role) {
       throw new NotFoundException('Không tìm thấy vai trò')
     }
-    const baseRoles: string[] = [RoleName.ADMIN, RoleName.STUDENT, RoleName.TEACHER]
+    const baseRoles: string[] = [RoleName.ADMIN, ...(roleName || [])]
 
     if (baseRoles.includes(role.name)) {
       throw new BadRequestException('Không thể thực hiện hành động trên vai trò cơ bản')
@@ -76,7 +76,7 @@ export class RoleService {
   }
   async delete({ id, deletedById }: { id: number; deletedById: number }) {
     try {
-      await this.verifyRole(id)
+      await this.verifyRole(id, [RoleName.ADMIN, RoleName.STUDENT, RoleName.TEACHER])
       await this.roleRepo.delete(
         {
           id,

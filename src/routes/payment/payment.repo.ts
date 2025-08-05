@@ -7,12 +7,14 @@ import { OrderStatus } from 'src/shared/constants/order.constant'
 import { PREFIX_PAYMENT_CODE } from 'src/shared/constants/other.constant'
 import { getTotalPrice } from 'src/shared/helpers'
 import { PrismaService } from 'src/shared/services/prisma.service'
+import { TelegramService } from 'src/shared/services/telegram.service'
 
 @Injectable()
 export class PaymentRepo {
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly paymentProducer: PaymentProducer
+    private readonly paymentProducer: PaymentProducer,
+    private readonly telegramService: TelegramService
   ) {}
 
   async receiver(body: WebhookPaymentBodyType): Promise<number> {
@@ -76,6 +78,11 @@ export class PaymentRepo {
                 }
               }
             }
+          },
+          user: {
+            select: {
+              email: true
+            }
           }
         }
       })
@@ -123,6 +130,13 @@ export class PaymentRepo {
           })
         }
       }
+      await this.telegramService
+        .sendMessageBuySuccess({
+          email: order.user.email,
+          titleCourse: order.course.title,
+          totalPrice: totalPrice.toString()
+        })
+        .catch((_) => {})
       return { userId, orderId }
     })
     await this.paymentProducer.removeJob(orderId).catch((_) => {})

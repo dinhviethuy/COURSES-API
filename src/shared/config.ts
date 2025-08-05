@@ -28,7 +28,9 @@ const configSchema = z.object({
   URL_ENDPOINT: z.string(),
   REDIS_URL: z.string(),
   CLIENT_URL: z.string(),
-  NODE_ENV: z.enum(['development', 'production']).default('development')
+  NODE_ENV: z.enum(['development', 'production']).default('development'),
+  TELEGRAM_TOKEN_BOT: z.string(),
+  TELEGRAM_YOUR_ID: z.string()
 })
 
 const configServer = configSchema.safeParse(process.env)

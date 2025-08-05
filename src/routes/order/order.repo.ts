@@ -16,6 +16,7 @@ import { OrderBy } from 'src/shared/constants/other.constant'
 import { generateRoomId, getTotalPrice, isNotFoundPrismaError } from 'src/shared/helpers'
 import { SharedRoleRepository } from 'src/shared/repositories/shared-role.repo'
 import { PrismaService } from 'src/shared/services/prisma.service'
+import { TelegramService } from 'src/shared/services/telegram.service'
 
 @Injectable()
 @WebSocketGateway({ namespace: 'payment' })
@@ -26,7 +27,8 @@ export class OrderRepo {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly orderProducer: OrderProducer,
-    private readonly sharedRoleRepo: SharedRoleRepository
+    private readonly sharedRoleRepo: SharedRoleRepository,
+    private readonly telegramService: TelegramService
   ) {}
 
   private async checkForAdmin(roleId?: number) {
@@ -131,6 +133,11 @@ export class OrderRepo {
               }
             }
           }
+        },
+        user: {
+          select: {
+            email: true
+          }
         }
       }
     })
@@ -208,6 +215,13 @@ export class OrderRepo {
           status: 'success',
           message: 'Payment received successfully'
         })
+        await this.telegramService
+          .sendMessageBuySuccess({
+            email: cart.user.email,
+            titleCourse: cart.course.title,
+            totalPrice: totalPrice.toString()
+          })
+          .catch((_) => {})
       }
       return order
     })

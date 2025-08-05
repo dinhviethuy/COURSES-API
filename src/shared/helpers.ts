@@ -83,3 +83,5 @@ export const getTotalPrice = ({
   }
   return totalPrice
 }
+
+export const escapeMarkdownV2 = (text: string) => text.replace(/[_*[\]()~`>#+\-=|{}.!\\]/g, '\\$&')

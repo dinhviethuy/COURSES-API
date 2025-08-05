@@ -116,7 +116,8 @@ export class PaymentRepo {
         const courseEnrollment = await tx.courseEnrollment.findFirst({
           where: {
             courseId: id,
-            userId
+            userId,
+            deletedAt: null
           }
         })
         if (!courseEnrollment) {

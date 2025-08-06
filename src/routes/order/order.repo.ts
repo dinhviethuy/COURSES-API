@@ -12,7 +12,6 @@ import {
 import { OrderProducer } from 'src/routes/order/order.producer'
 import { CourseEnrollmentStatus } from 'src/shared/constants/course-enrollment.constant'
 import { OrderStatus } from 'src/shared/constants/order.constant'
-import { OrderBy } from 'src/shared/constants/other.constant'
 import { generateRoomId, getTotalPrice, isNotFoundPrismaError } from 'src/shared/helpers'
 import { SharedRoleRepository } from 'src/shared/repositories/shared-role.repo'
 import { PrismaService } from 'src/shared/services/prisma.service'
@@ -44,20 +43,58 @@ export class OrderRepo {
       userId,
       status
     }
+    const limitOffsetClause = getAll
+      ? Prisma.sql`` // Nếu getAll là true, không thêm LIMIT/OFFSET
+      : Prisma.sql`LIMIT ${take} OFFSET ${skip}` // Ngược lại, thêm LIMIT/OFFSET
+
+    // Sửa lỗi: $queryRawUnsafe chỉ nhận string, không nhận Prisma.sql
+    // Chuyển Prisma.sql thành string, chèn giá trị trực tiếp (cẩn thận injection)
+    // Ở đây userId, limit, offset đều là number đã kiểm soát, an toàn để chèn trực tiếp
+
+    const limitOffsetString = query.getAll ? '' : `LIMIT ${take} OFFSET ${skip}`
+
+    const rawQuery = `
+      SELECT
+        o.*,
+        json_agg(
+          json_build_object(
+            'id', s."id",
+            'orderId', s."orderId",
+            'couponId', s."couponId",
+            'createdAt', s."createdAt",
+            'courseId', s."courseId",
+            'courseTitle', s."courseTitle",
+            'courseImage', s."courseImage",
+            'coursePrice', s."coursePrice",
+            'courseDiscount', s."courseDiscount",
+            'courseType', s."courseType",
+            'couponDiscount', s."couponDiscount",
+            'couponType', s."couponType",
+            'couponStartAt', s."couponStartAt",
+            'couponEndAt', s."couponEndAt",
+            'couponCode', s."couponCode",
+            'course', CASE
+              WHEN c."isDraft" = false AND c."deletedAt" IS NULL THEN
+                json_build_object(
+                  'title', c."title",
+                  'slug', c."slug",
+                  'image', c."image"
+                )
+              ELSE NULL
+            END
+          )
+        ) AS snapshots
+      FROM "Order" o
+      JOIN "OrderItemSnapshot" s ON s."orderId" = o."id"
+      LEFT JOIN "Course" c ON c."id" = s."courseId"
+      WHERE o."userId" = ${userId}
+      GROUP BY o."id"
+      ORDER BY o."createdAt" DESC
+      ${limitOffsetString}
+    `
+
     const [orders, totalItems] = await Promise.all([
-      this.prismaService.order.findMany({
-        where,
-        ...(!getAll && {
-          skip,
-          take
-        }),
-        orderBy: {
-          createdAt: OrderBy.Desc
-        },
-        include: {
-          snapshots: true
-        }
-      }),
+      this.prismaService.$queryRawUnsafe<GetOrderListResType['orders']>(rawQuery),
       this.prismaService.order.count({
         where
       })

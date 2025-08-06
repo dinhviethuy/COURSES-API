@@ -2,6 +2,7 @@ import { CouponType } from 'src/shared/constants/counpon.constant'
 import { CourseType } from 'src/shared/constants/course.constant'
 import { OrderStatus } from 'src/shared/constants/order.constant'
 import { UserSchema } from 'src/shared/models/shared-user.model'
+import { CourseSchema } from 'src/shared/models/shrared-course.model'
 import { z } from 'zod'
 
 export const OrderSchema = z.object({
@@ -39,7 +40,15 @@ export const OrderItemSnapshotSchema = z.object({
 export const GetOrderListResSchema = z.object({
   orders: z.array(
     OrderSchema.extend({
-      snapshots: z.array(OrderItemSnapshotSchema)
+      snapshots: z.array(
+        OrderItemSnapshotSchema.extend({
+          course: CourseSchema.pick({
+            title: true,
+            image: true,
+            slug: true
+          }).nullable()
+        })
+      )
     }).omit({
       createdById: true,
       updatedById: true,

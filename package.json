@@ -41,6 +41,7 @@
     "bcrypt": "^6.0.0",
     "bullmq": "^5.56.4",
     "cache-manager": "^7.0.1",
+    "cookie": "^1.0.2",
     "cookie-parser": "^1.4.7",
     "date-fns": "^4.1.0",
     "fluent-ffmpeg": "^2.1.3",

@@ -1,6 +1,7 @@
 import { INestApplicationContext } from '@nestjs/common'
 import { IoAdapter } from '@nestjs/platform-socket.io'
 import { createAdapter } from '@socket.io/redis-adapter'
+import { parse } from 'cookie'
 import { createClient } from 'redis'
 import { Server, ServerOptions, Socket } from 'socket.io'
 import { envConfig } from 'src/shared/config'
@@ -48,12 +49,12 @@ export class WebsocketAdapter extends IoAdapter {
   }
 
   async authMiddleware(socket: Socket, next: (err?: any) => void) {
-    const cookie = socket.handshake.headers.cookie
-    if (!cookie) {
+    const cookie = parse(socket.handshake.headers.cookie || '')
+    if (!cookie.sessionToken) {
       next(new Error('Thiếu sessionToken'))
       return
     }
-    const sessionToken = cookie.split('=')[1]
+    const sessionToken = cookie.sessionToken
     if (!sessionToken) {
       return next(new Error('Thiếu sessionToken'))
     }

@@ -43,17 +43,17 @@ export class OrderRepo {
       userId,
       status
     }
-    const limitOffsetClause = getAll
-      ? Prisma.sql`` // Nếu getAll là true, không thêm LIMIT/OFFSET
-      : Prisma.sql`LIMIT ${take} OFFSET ${skip}` // Ngược lại, thêm LIMIT/OFFSET
+    const whereConditions: Prisma.Sql[] = [Prisma.sql`o."userId" = ${userId}`]
 
-    // Sửa lỗi: $queryRawUnsafe chỉ nhận string, không nhận Prisma.sql
-    // Chuyển Prisma.sql thành string, chèn giá trị trực tiếp (cẩn thận injection)
-    // Ở đây userId, limit, offset đều là number đã kiểm soát, an toàn để chèn trực tiếp
+    if (status) {
+      whereConditions.push(Prisma.sql`o."status" = ${Prisma.raw(`'${status}'::"OrderStatus"`)} `)
+    }
 
-    const limitOffsetString = query.getAll ? '' : `LIMIT ${take} OFFSET ${skip}`
+    const whereClause =
+      whereConditions.length > 0 ? Prisma.sql`WHERE ${Prisma.join(whereConditions, ' AND ')}` : Prisma.empty
 
-    const rawQuery = `
+    const limitOffsetClause = getAll ? Prisma.empty : Prisma.sql`LIMIT ${take} OFFSET ${skip}`
+    const rawQuery = Prisma.sql`
       SELECT
         o.*,
         json_agg(
@@ -87,14 +87,14 @@ export class OrderRepo {
       FROM "Order" o
       JOIN "OrderItemSnapshot" s ON s."orderId" = o."id"
       LEFT JOIN "Course" c ON c."id" = s."courseId"
-      WHERE o."userId" = ${userId}
+      ${whereClause}
       GROUP BY o."id"
       ORDER BY o."createdAt" DESC
-      ${limitOffsetString}
+      ${limitOffsetClause}
     `
 
     const [orders, totalItems] = await Promise.all([
-      this.prismaService.$queryRawUnsafe<GetOrderListResType['orders']>(rawQuery),
+      this.prismaService.$queryRaw<GetOrderListResType['orders']>(rawQuery),
       this.prismaService.order.count({
         where
       })

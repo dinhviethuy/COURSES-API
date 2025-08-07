@@ -209,39 +209,39 @@ export class CourseRepo {
     }
   }
 
-  private buildWhereClause(where: Prisma.CourseWhereInput): string {
-    const conditions: string[] = []
+  private buildWhereClause(where: Prisma.CourseWhereInput): Prisma.Sql {
+    const conditions: Prisma.Sql[] = []
 
     if (where.deletedAt === null) {
-      conditions.push(`"Course"."deletedAt" IS NULL`)
+      conditions.push(Prisma.sql`"Course"."deletedAt" IS NULL`)
     }
 
     if (typeof where.isDraft === 'boolean') {
-      conditions.push(`"Course"."isDraft" = ${where.isDraft}`)
+      conditions.push(Prisma.sql`"Course"."isDraft" = ${where.isDraft}`)
     }
 
     if (typeof where.createdById === 'number') {
-      conditions.push(`"Course"."createdById" = ${where.createdById}`)
+      conditions.push(Prisma.sql`"Course"."createdById" = ${where.createdById}`)
     }
 
     if (typeof where.title === 'object' && where.title && 'contains' in where.title) {
       const keyword = (where.title as Prisma.StringFilter).contains
       if (typeof keyword === 'string') {
-        conditions.push(`LOWER("Course"."title") LIKE LOWER('%${keyword.replace(/'/g, "''")}%')`)
+        conditions.push(Prisma.sql`LOWER("Course"."title") LIKE LOWER(${`%${keyword}%`})`)
       }
     }
 
     if (typeof where.price === 'object' && where.price) {
       const price = where.price as Prisma.IntFilter
       if (typeof price.gte === 'number') {
-        conditions.push(`"Course"."price" >= ${price.gte}`)
+        conditions.push(Prisma.sql`"Course"."price" >= ${price.gte}`)
       }
       if (typeof price.lte === 'number') {
-        conditions.push(`"Course"."price" <= ${price.lte}`)
+        conditions.push(Prisma.sql`"Course"."price" <= ${price.lte}`)
       }
     }
 
-    return conditions.length > 0 ? conditions.join(' AND ') : 'TRUE'
+    return Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
   }
 
   async listCourses({
@@ -260,46 +260,44 @@ export class CourseRepo {
       userId
     })
     const whereClause = this.buildWhereClause(where)
+    const rawQuery = Prisma.sql`
+      SELECT 
+      "Course"."id",
+      "Course"."title",
+      "Course"."description",
+      "Course"."slug",
+      "Course"."price",
+      "Course"."isDraft",
+      "Course"."courseType",
+      "Course"."discount",
+      "Course"."image",
+      "Course"."createdAt",
+      "Course"."updatedAt",
+      json_build_object(
+        'id', "User"."id",
+        'fullName', "User"."fullName",
+        'email', "User"."email"
+      ) AS "createdBy"
+      FROM "Course"
+      INNER JOIN "CourseEnrollment"
+        ON "Course"."id" = "CourseEnrollment"."courseId"
+        AND "CourseEnrollment"."userId" = ${userId}
+        AND "CourseEnrollment"."deletedAt" IS NULL
+      INNER JOIN "User"
+        ON "Course"."createdById" = "User"."id"
+      ${whereClause}
+      ${Prisma.sql`
+          ${
+            query.sortBy === SortBy.CreatedAt
+              ? Prisma.sql`ORDER BY "CourseEnrollment"."createdAt" ${Prisma.raw(query.orderBy)}`
+              : Prisma.sql`ORDER BY "Course"."${Prisma.raw(query.sortBy)}" ${Prisma.raw(query.orderBy)}`
+          }
+          ${query.getAll ? Prisma.empty : Prisma.sql`LIMIT ${take} OFFSET ${skip}`}
+        `}
+      `
     const [courses, totalItems] = await Promise.all([
       isBought
-        ? this.prismaService.$queryRawUnsafe<ListCoursesResType['courses']>(
-            `SELECT 
-                "Course"."id",
-                "Course"."title",
-                "Course"."description",
-                "Course"."slug",
-                "Course"."price",
-                "Course"."isDraft",
-                "Course"."courseType",
-                "Course"."discount",
-                "Course"."image",
-                "Course"."createdAt",
-                "Course"."updatedAt",
-                json_build_object(
-                  'id', "User"."id",
-                  'fullName', "User"."fullName",
-                  'email', "User"."email"
-                ) AS "createdBy"
-              FROM "Course"
-              INNER JOIN "CourseEnrollment"
-                ON "Course"."id" = "CourseEnrollment"."courseId"
-                AND "CourseEnrollment"."userId" = $1
-                AND "CourseEnrollment"."deletedAt" IS NULL
-              INNER JOIN "User"
-                ON "Course"."createdById" = "User"."id"
-              WHERE ${whereClause}
-              ${
-                query.sortBy === SortBy.CreatedAt
-                  ? `ORDER BY "CourseEnrollment"."createdAt" ${query.orderBy}`
-                  : `ORDER BY "Course"."${query.sortBy}" ${query.orderBy}`
-              }
-              LIMIT $2
-              OFFSET $3
-            `,
-            userId,
-            take,
-            skip
-          )
+        ? this.prismaService.$queryRaw<ListCoursesResType['courses']>(rawQuery)
         : this.prismaService.course.findMany({
             where,
             skip,

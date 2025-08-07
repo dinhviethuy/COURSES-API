@@ -44,13 +44,14 @@ export const GetCoursesQuerySchema = z
     orderBy: z.enum([OrderBy.Asc, OrderBy.Desc]).default(OrderBy.Desc),
     sortBy: z.enum([SortBy.CreatedAt, SortBy.Price, SortBy.Sale]).default(SortBy.CreatedAt),
     getAll: z
-    .preprocess((value: any) => {
-      if (typeof value === 'string') {
-        return value.toLowerCase() === 'true'
-      }
-      return false
-    }, z.boolean())
-    .optional()
+      .preprocess((value: any) => {
+        if (typeof value === 'string') {
+          return value.toLowerCase() === 'true'
+        }
+        return false
+      }, z.boolean())
+      .optional(),
+    skipCourseId: z.coerce.number().int().positive().optional()
   })
   .strict()
 

@@ -145,14 +145,15 @@ export class CourseRepo {
     userId?: number
     isBought?: boolean
   }) {
-    const { page, limit, search, minPrice, maxPrice, orderBy, sortBy } = query
+    const { page, limit, search, minPrice, maxPrice, orderBy, sortBy, skipCourseId } = query
     const skip = (page - 1) * limit
     const take = limit
     const isAdminOrCreator = roleId ? await this.checkForAdmin(roleId) : true
     const where: Prisma.CourseWhereInput = {
       deletedAt: null,
       isDraft: isAdmin ? (query as GetManageCoursesQueryType)?.isDraft : false,
-      createdById: isAdminOrCreator ? undefined : userId
+      createdById: isAdminOrCreator ? undefined : userId,
+      ...(skipCourseId && { id: { not: skipCourseId } })
     }
     if (isBought) {
       where.courseEnrollments = {

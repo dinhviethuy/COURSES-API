@@ -1,3 +1,4 @@
+import { InjectQueue } from '@nestjs/bullmq'
 import {
   Controller,
   FileTypeValidator,
@@ -13,21 +14,25 @@ import {
   UseInterceptors
 } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
+import { Queue } from 'bullmq'
 import { Response } from 'express'
 import fs, { createReadStream, statSync } from 'fs'
 import path from 'path'
 import { envConfig } from 'src/shared/config'
+import { PROBE_DURATION_JOB_NAME, VIDEO_QUEUE_NAME } from 'src/shared/constants/queue.constant'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { IsPublic } from 'src/shared/decorators/auth.decorator'
 import { MessageRes } from 'src/shared/decorators/message.decorator'
-import { getVideoDuration } from 'src/shared/helpers'
 import { ParseFilePipeWithUnlink } from 'src/shared/pipes/parse-file-pipe-with-unlink.pipe'
 import { SharedLessonRepository } from 'src/shared/repositories/shared-lesson.repo'
 import { SessionTokenPayload } from 'src/shared/types/jwt.type'
 
 @Controller('media')
 export class MediaController {
-  constructor(private readonly sharedLessonRepository: SharedLessonRepository) {}
+  constructor(
+    private readonly sharedLessonRepository: SharedLessonRepository,
+    @InjectQueue(VIDEO_QUEUE_NAME) private readonly queue: Queue
+  ) {}
 
   @Post('images/upload')
   @MessageRes('Tải ảnh lên thành công')
@@ -57,7 +62,7 @@ export class MediaController {
   @Post('videos/upload')
   @MessageRes('Tải video lên thành công')
   @UseInterceptors(FilesInterceptor('files', 1))
-  async uploadVideos(
+  uploadVideos(
     @UploadedFiles(
       new ParseFilePipeWithUnlink({
         validators: [
@@ -66,21 +71,28 @@ export class MediaController {
         ]
       })
     )
-    files: Array<Express.Multer.File>
+    files: Array<Express.Multer.File>,
+    @ActiveUser('userId') userId: number
   ) {
-    return await Promise.all(
-      files.map(async (video) => {
-        const videoDuration = (await getVideoDuration(video.path)) ?? 0
-        const key = video.filename.split('.')[0]
-        const url = `${envConfig.URL_ENDPOINT}/media/static/videos/${video.filename}`
-        return {
-          url,
-          key,
-          type: 'video',
-          duration: videoDuration
-        }
-      })
-    )
+    for (const video of files) {
+      const key = video.filename.split('.')[0]
+      this.queue
+        .add(
+          PROBE_DURATION_JOB_NAME,
+          { path: video.path, key, userId },
+          {
+            jobId: key,
+            removeOnComplete: true,
+            removeOnFail: true
+          }
+        )
+        .catch((e) => console.error('enqueue failed', e))
+    }
+    return files.map((video) => {
+      const key = video.filename.split('.')[0]
+      const url = `${envConfig.URL_ENDPOINT}/media/static/videos/${video.filename}`
+      return { url, key, type: 'video', duration: null }
+    })
   }
 
   @Get('static/images/:filename')

@@ -1,8 +1,10 @@
+import { BullModule } from '@nestjs/bullmq'
 import { Module } from '@nestjs/common'
 import { MulterModule } from '@nestjs/platform-express'
 import fs from 'fs'
 import multer from 'multer'
 import { MediaController } from 'src/routes/media/media.controller'
+import { VIDEO_QUEUE_NAME } from 'src/shared/constants/queue.constant'
 import { generateRandomFilename } from 'src/shared/helpers'
 
 const storage = multer.diskStorage({
@@ -21,6 +23,9 @@ const storage = multer.diskStorage({
   imports: [
     MulterModule.register({
       storage
+    }),
+    BullModule.registerQueue({
+      name: VIDEO_QUEUE_NAME
     })
   ]
 })

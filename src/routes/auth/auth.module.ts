@@ -10,7 +10,7 @@ import { AuthService } from 'src/routes/auth/auth.service'
       throttlers: [
         {
           ttl: 60000,
-          limit: 3
+          limit: 20
         }
       ]
     })

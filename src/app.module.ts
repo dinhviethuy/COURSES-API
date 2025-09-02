@@ -5,6 +5,7 @@ import { ScheduleModule } from '@nestjs/schedule'
 import { AppController } from 'src/app.controller'
 import { AppService } from 'src/app.service'
 import { RemoveSessionTokenCronjob } from 'src/cronjobs/remove-session-token.cronjob'
+import { DurationProcessor } from 'src/queue/duration.consumer'
 import { PaymentConsumer } from 'src/queue/payment.consumer'
 import { AuthModule } from 'src/routes/auth/auth.module'
 import { CartModule } from 'src/routes/cart/cart.module'
@@ -68,6 +69,7 @@ import { WebSocketModule } from 'src/websockets/websocket.module'
       useClass: HttpExceptionFilter
     },
     PaymentConsumer,
+    DurationProcessor,
     RemoveSessionTokenCronjob
   ]
 })

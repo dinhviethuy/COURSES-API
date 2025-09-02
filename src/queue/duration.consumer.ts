@@ -1,4 +1,3 @@
-// duration.processor.ts
 import { Processor, WorkerHost } from '@nestjs/bullmq'
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets'
 import { Job } from 'bullmq'
@@ -6,7 +5,7 @@ import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import { Server } from 'socket.io'
 import { PROBE_DURATION_JOB_NAME, VIDEO_QUEUE_NAME } from 'src/shared/constants/queue.constant'
-import { generateRoomId } from 'src/shared/helpers'
+import { generateRoomId, getVideoDuration } from 'src/shared/helpers'
 import { PrismaService } from 'src/shared/services/prisma.service'
 const execFileAsync = promisify(execFile)
 
@@ -23,16 +22,7 @@ export class DurationProcessor extends WorkerHost {
     switch (job.name) {
       case PROBE_DURATION_JOB_NAME: {
         const { path, key, userId } = job.data
-        const { stdout } = await execFileAsync('ffprobe', [
-          '-v',
-          'error',
-          '-show_entries',
-          'format=duration',
-          '-of',
-          'default=noprint_wrappers=1:nokey=1',
-          path
-        ])
-        const duration = Math.round(Math.max(0, parseFloat(stdout.trim()) || 0))
+        const duration = await getVideoDuration(path)
         const result = await this.prisma.$transaction(async (tx) => {
           const existed = await tx.lesson.findFirst({ where: { key, deletedAt: null } })
           if (existed) {
@@ -44,7 +34,9 @@ export class DurationProcessor extends WorkerHost {
           this.server.to(generateRoomId(userId)).emit('duration', {
             status: 'success',
             message: 'Duration received successfully',
-            id: result.id
+            id: result.id,
+            key,
+            duration
           })
         }
         break

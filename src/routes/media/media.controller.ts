@@ -1,5 +1,7 @@
 import { InjectQueue } from '@nestjs/bullmq'
 import {
+  BadRequestException,
+  Body,
   Controller,
   FileTypeValidator,
   Get,
@@ -17,12 +19,14 @@ import { FilesInterceptor } from '@nestjs/platform-express'
 import { Queue } from 'bullmq'
 import { Response } from 'express'
 import fs, { createReadStream, statSync } from 'fs'
+import multer from 'multer'
 import path from 'path'
 import { envConfig } from 'src/shared/config'
 import { PROBE_DURATION_JOB_NAME, VIDEO_QUEUE_NAME } from 'src/shared/constants/queue.constant'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { IsPublic } from 'src/shared/decorators/auth.decorator'
 import { MessageRes } from 'src/shared/decorators/message.decorator'
+import { generateRandomFilename } from 'src/shared/helpers'
 import { ParseFilePipeWithUnlink } from 'src/shared/pipes/parse-file-pipe-with-unlink.pipe'
 import { SharedLessonRepository } from 'src/shared/repositories/shared-lesson.repo'
 import { SessionTokenPayload } from 'src/shared/types/jwt.type'
@@ -91,8 +95,87 @@ export class MediaController {
     return files.map((video) => {
       const key = video.filename.split('.')[0]
       const url = `${envConfig.URL_ENDPOINT}/media/static/videos/${video.filename}`
-      return { url, key, type: 'video', duration: null }
+      return { url, key, type: 'video', duration: 0 }
     })
+  }
+
+  @Post('videos/init')
+  @MessageRes('Khởi tạo tải video thành công')
+  initUploadVideo(@Body('originalName') originalName: string) {
+    if (!originalName) {
+      throw new BadRequestException('Thiếu tên file gốc')
+    }
+    const ext = path.extname(originalName).toLowerCase().replace('.', '')
+    const allowed = /(mp4|mov|avi|wmv|flv|mkv|webm)$/
+    if (!allowed.test(ext)) {
+      throw new BadRequestException('Định dạng video không hợp lệ')
+    }
+    const filename = generateRandomFilename(originalName)
+    const key = filename.split('.')[0]
+    const url = `${envConfig.URL_ENDPOINT}/media/static/videos/${filename}`
+    return { url, key, type: 'video', duration: 0 }
+  }
+
+  @Post('videos/upload-by-name')
+  @MessageRes('Tải video (nền) lên thành công')
+  @UseInterceptors(
+    FilesInterceptor('files', 1, {
+      storage: multer.diskStorage({
+        destination: (_req, _file, cb) => {
+          const videosDir = path.resolve(process.cwd(), 'uploads', 'videos')
+          cb(null, videosDir)
+        },
+        filename: (req, file, cb) => {
+          const requested = String(
+            (req.query?.filename as string) ||
+              (req.headers['x-filename'] as string) ||
+              (req.body?.filename as string) ||
+              ''
+          )
+          const safe = path.basename(requested)
+          const ext = path.extname(safe).toLowerCase().replace('.', '')
+          const allowed = /(mp4|mov|avi|wmv|flv|mkv|webm)$/
+          if (!safe || !allowed.test(ext)) {
+            return cb(new Error('Tên file không hợp lệ'), safe)
+          }
+          cb(null, safe)
+        }
+      })
+    })
+  )
+  uploadVideoByName(
+    @UploadedFiles(
+      new ParseFilePipeWithUnlink({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 }),
+          new FileTypeValidator({ fileType: /(mp4|mov|avi|wmv|flv|mkv|webm)$/, skipMagicNumbersValidation: true })
+        ]
+      })
+    )
+    files: Array<Express.Multer.File>,
+    @ActiveUser('userId') userId: number
+  ) {
+    const safeFilename = files?.[0]?.filename
+    if (!safeFilename) {
+      throw new BadRequestException('Thiếu tên file')
+    }
+    for (const video of files) {
+      const key = safeFilename.split('.')[0]
+      this.queue
+        .add(
+          PROBE_DURATION_JOB_NAME,
+          { path: video.path, key, userId },
+          {
+            jobId: key,
+            removeOnComplete: true,
+            removeOnFail: true
+          }
+        )
+        .catch((e) => console.error('enqueue failed', e))
+    }
+    const key = safeFilename.split('.')[0]
+    const url = `${envConfig.URL_ENDPOINT}/media/static/videos/${safeFilename}`
+    return [{ url, key, type: 'video', duration: 0 }]
   }
 
   @Get('static/images/:filename')

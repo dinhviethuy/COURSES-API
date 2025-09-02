@@ -1,9 +1,12 @@
 import { Prisma } from '@prisma/client'
-import { exec } from 'child_process'
 import { randomInt } from 'crypto'
+import { execFile } from 'node:child_process'
+import { promisify } from 'node:util'
 import path from 'path'
 import { CouponType } from 'src/shared/constants/counpon.constant'
 import { v4 as uuidv4 } from 'uuid'
+
+const execFileAsync = promisify(execFile)
 
 export function isUniqueConstraintPrismaError(error: any): error is Prisma.PrismaClientKnownRequestError {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002'
@@ -57,19 +60,13 @@ export const generateRoomId = (userId: number) => {
 //   })
 // }
 
-export const getVideoDuration = async (videoPath: string): Promise<number> => {
-  return new Promise((resolve, reject) => {
-    exec(
-      `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${videoPath}"`,
-      (err, stdout) => {
-        if (err) {
-          reject(err)
-          return
-        }
-        resolve(parseFloat(stdout))
-      }
-    )
-  })
+export async function getVideoDuration(videoPath: string): Promise<number> {
+  const { stdout } = await execFileAsync(
+    'ffprobe',
+    ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', videoPath],
+    { windowsHide: true }
+  )
+  return parseFloat(stdout)
 }
 
 export const getTotalPrice = ({

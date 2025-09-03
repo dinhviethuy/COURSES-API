@@ -8,7 +8,7 @@ export const LessonSchema = z.object({
   isDraft: z.boolean().default(true),
   chapterId: z.number().int().positive(),
   duration: z.number().min(0).default(0),
-  videoUrl: z.string().url().nullable().optional(),
+  videoUrl: z.string().nullable().optional(),
   key: z.string().nullable(),
 
   createdAt: z.date(),

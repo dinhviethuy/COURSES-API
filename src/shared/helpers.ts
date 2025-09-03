@@ -97,3 +97,7 @@ export const getTotalPrice = ({
 }
 
 export const escapeMarkdownV2 = (text: string) => text.replace(/[_*[\]()~`>#+\-=|{}.!\\]/g, '\\$&')
+
+export function encodeRFC5987ValueChars(str: string) {
+  return encodeURIComponent(str).replace(/'/g, '%27').replace(/\(/g, '%28').replace(/\)/g, '%29').replace(/\*/g, '%2A')
+}

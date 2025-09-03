@@ -3,7 +3,7 @@ import { Job } from 'bullmq'
 import { CANCEL_PAYMENT_JOB_NAME, PAYMENT_QUEUE_NAME } from 'src/shared/constants/queue.constant'
 import { SharedPaymentReporitory } from 'src/shared/repositories/shared-payment.repo'
 
-@Processor(PAYMENT_QUEUE_NAME)
+@Processor(PAYMENT_QUEUE_NAME, { concurrency: 1 })
 export class PaymentConsumer extends WorkerHost {
   constructor(private readonly sharedPaymentRepo: SharedPaymentReporitory) {
     super()

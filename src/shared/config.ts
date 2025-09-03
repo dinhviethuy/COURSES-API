@@ -30,7 +30,11 @@ const configSchema = z.object({
   CLIENT_URL: z.string(),
   NODE_ENV: z.enum(['development', 'production']).default('development'),
   TELEGRAM_TOKEN_BOT: z.string(),
-  TELEGRAM_YOUR_ID: z.string()
+  TELEGRAM_YOUR_ID: z.string(),
+  AZURE_STORAGE_CONNECTION_STRING: z.string(),
+  AZURE_STORAGE_CONTAINER: z.string(),
+  AZURE_STORAGE_ACCOUNT_NAME: z.string(),
+  AZURE_STORAGE_ACCOUNT_KEY: z.string()
 })
 
 const configServer = configSchema.safeParse(process.env)

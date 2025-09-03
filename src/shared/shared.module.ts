@@ -9,8 +9,10 @@ import { SharedLessonRepository } from 'src/shared/repositories/shared-lesson.re
 import { SharedPaymentReporitory } from 'src/shared/repositories/shared-payment.repo'
 import { SharedRoleRepository } from 'src/shared/repositories/shared-role.repo'
 import { SharedUserRepository } from 'src/shared/repositories/shared-user.repo'
+import { AzureService } from 'src/shared/services/azure.services'
 import { EmailService } from 'src/shared/services/email.service'
 import { HashingService } from 'src/shared/services/hashing.service'
+import { MediaInfoService } from 'src/shared/services/media-info.service'
 import { PrismaService } from 'src/shared/services/prisma.service'
 import { TelegramService } from 'src/shared/services/telegram.service'
 import { TokenService } from 'src/shared/services/token.service'
@@ -25,7 +27,9 @@ const sharedServices = [
   SharedLessonRepository,
   SharedPaymentReporitory,
   EmailService,
-  TelegramService
+  TelegramService,
+  AzureService,
+  MediaInfoService
 ]
 
 @Global()

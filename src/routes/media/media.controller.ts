@@ -29,13 +29,15 @@ import { MessageRes } from 'src/shared/decorators/message.decorator'
 import { generateRandomFilename } from 'src/shared/helpers'
 import { ParseFilePipeWithUnlink } from 'src/shared/pipes/parse-file-pipe-with-unlink.pipe'
 import { SharedLessonRepository } from 'src/shared/repositories/shared-lesson.repo'
+import { AzureService } from 'src/shared/services/azure.services'
 import { SessionTokenPayload } from 'src/shared/types/jwt.type'
 
 @Controller('media')
 export class MediaController {
   constructor(
     private readonly sharedLessonRepository: SharedLessonRepository,
-    @InjectQueue(VIDEO_QUEUE_NAME) private readonly queue: Queue
+    @InjectQueue(VIDEO_QUEUE_NAME) private readonly queue: Queue,
+    private readonly azureService: AzureService
   ) {}
 
   @Post('images/upload')
@@ -70,7 +72,7 @@ export class MediaController {
     @UploadedFiles(
       new ParseFilePipeWithUnlink({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 }), // 1GB
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 * 1024 }), // 1GB
           new FileTypeValidator({ fileType: /(mp4|mov|avi|wmv|flv|mkv|webm)$/, skipMagicNumbersValidation: true })
         ]
       })
@@ -102,18 +104,22 @@ export class MediaController {
   @Post('videos/init')
   @MessageRes('Khởi tạo tải video thành công')
   initUploadVideo(@Body('originalName') originalName: string) {
-    if (!originalName) {
-      throw new BadRequestException('Thiếu tên file gốc')
+    try {
+      if (!originalName) {
+        throw new BadRequestException('Thiếu tên file gốc')
+      }
+      const ext = path.extname(originalName).toLowerCase().replace('.', '')
+      const allowed = /(mp4|mov|avi|wmv|flv|mkv|webm)$/
+      if (!allowed.test(ext)) {
+        throw new BadRequestException('Định dạng video không hợp lệ')
+      }
+      const filename = generateRandomFilename(originalName)
+      const key = filename.split('.')[0]
+      const url = this.azureService.generateWriteSasUrl(filename)
+      return { url, key, type: 'video', duration: 0 }
+    } catch (error) {
+      throw new BadRequestException(error.message)
     }
-    const ext = path.extname(originalName).toLowerCase().replace('.', '')
-    const allowed = /(mp4|mov|avi|wmv|flv|mkv|webm)$/
-    if (!allowed.test(ext)) {
-      throw new BadRequestException('Định dạng video không hợp lệ')
-    }
-    const filename = generateRandomFilename(originalName)
-    const key = filename.split('.')[0]
-    const url = `${envConfig.URL_ENDPOINT}/media/static/videos/${filename}`
-    return { url, key, type: 'video', duration: 0 }
   }
 
   @Post('videos/upload-by-name')
@@ -147,7 +153,7 @@ export class MediaController {
     @UploadedFiles(
       new ParseFilePipeWithUnlink({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 }),
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 * 1024 }),
           new FileTypeValidator({ fileType: /(mp4|mov|avi|wmv|flv|mkv|webm)$/, skipMagicNumbersValidation: true })
         ]
       })
@@ -158,6 +164,11 @@ export class MediaController {
     const safeFilename = files?.[0]?.filename
     if (!safeFilename) {
       throw new BadRequestException('Thiếu tên file')
+    }
+    const ext = path.extname(safeFilename).toLowerCase().replace('.', '')
+    const allowed = /(mp4|mov|avi|wmv|flv|mkv|webm)$/
+    if (!allowed.test(ext)) {
+      throw new BadRequestException('Định dạng video không hợp lệ')
     }
     for (const video of files) {
       const key = safeFilename.split('.')[0]
@@ -246,5 +257,108 @@ export class MediaController {
       // })
       // createReadStream(videoPath).pipe(res)
     }
+  }
+
+  @Get('static/videos-azure/:filename')
+  async stream(
+    @Param('filename') rawFilename: string,
+    @Headers() headers: Record<string, string | undefined>,
+    @Res() res: Response,
+    @ActiveUser() user: SessionTokenPayload
+  ) {
+    try {
+      await this.sharedLessonRepository.checkCanAccessLesson({
+        key: rawFilename.split('.')[0],
+        where: { userId: user.userId },
+        roleId: user.roleId
+      })
+      const input = decodeURIComponent((rawFilename || '').trim())
+      if (!input) throw new BadRequestException('Missing filename')
+      if (input.includes('/')) throw new BadRequestException('Invalid filename')
+
+      const blobName = input.includes('.') ? input : `${input}.mp4`
+
+      const baseKey = blobName.replace(/\.[^.]+$/, '')
+      await this.sharedLessonRepository.checkCanAccessLesson({
+        key: baseKey,
+        where: { userId: user.userId },
+        roleId: user.roleId
+      })
+
+      // lấy metadata blob
+      const props = await this.azureService.getProps(blobName)
+      const fileSize = Number(props.contentLength ?? 0)
+      const contentType = props.contentType || 'video/mp4'
+
+      const rangeHeader = headers.range
+      if (!rangeHeader) {
+        // const dl = await this.azureService.downloadRange(blobName, 0)
+        // res.set({
+        //   'Content-Type': contentType,
+        //   'Content-Length': fileSize,
+        //   'Accept-Ranges': 'bytes',
+        //   'Cache-Control': 'no-store',
+        //   'Content-Disposition': `inline; filename="${encodeURIComponent(blobName)}"`
+        // })
+        // dl.readableStreamBody!.pipe(res)
+        // return
+        return res.json({
+          message: 'Không có quyền truy cập',
+          error: 'Forbidden',
+          statusCode: 403
+        })
+      }
+
+      const m = /bytes=(\d+)-(\d+)?/.exec(rangeHeader)
+      let start = m ? parseInt(m[1], 10) : 0
+      let end = m && m[2] ? parseInt(m[2], 10) : fileSize - 1
+      if (Number.isNaN(start)) start = 0
+      if (Number.isNaN(end) || end >= fileSize) end = fileSize - 1
+      if (start < 0 || start >= fileSize) {
+        res
+          .status(416)
+          .set({ 'Content-Range': `bytes */${fileSize}`, 'Accept-Ranges': 'bytes' })
+          .end()
+        return
+      }
+
+      const chunkSize = end - start + 1
+      const dl = await this.azureService.downloadRange(blobName, start, chunkSize)
+      res.status(206).set({
+        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': chunkSize,
+        'Content-Type': contentType,
+        'Cache-Control': 'no-store',
+        'Content-Disposition': `inline; filename="${encodeURIComponent(blobName)}"`,
+        Pragma: 'no-cache',
+        Expires: '0'
+      })
+      dl.readableStreamBody!.pipe(res)
+    } catch (error) {
+      console.error('error', error)
+      return res.json({
+        message: 'Lỗi',
+        error: error.message,
+        statusCode: 500
+      })
+    }
+  }
+
+  @Post('videos/upload-success')
+  @MessageRes('Đã bắt đầu xử lý video')
+  async uploadVideoSuccess(@Body('userId') userId: number, @Body('key') key: string) {
+    await this.queue
+      .add(
+        PROBE_DURATION_JOB_NAME,
+        { key, userId },
+        {
+          jobId: key,
+          removeOnComplete: true,
+          removeOnFail: true
+        }
+      )
+      .catch()
+    return true
   }
 }

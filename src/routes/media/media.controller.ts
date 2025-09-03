@@ -30,6 +30,7 @@ import { generateRandomFilename } from 'src/shared/helpers'
 import { ParseFilePipeWithUnlink } from 'src/shared/pipes/parse-file-pipe-with-unlink.pipe'
 import { SharedLessonRepository } from 'src/shared/repositories/shared-lesson.repo'
 import { AzureService } from 'src/shared/services/azure.services'
+import { MediaInfoService } from 'src/shared/services/media-info.service'
 import { SessionTokenPayload } from 'src/shared/types/jwt.type'
 
 @Controller('media')
@@ -37,7 +38,8 @@ export class MediaController {
   constructor(
     private readonly sharedLessonRepository: SharedLessonRepository,
     @InjectQueue(VIDEO_QUEUE_NAME) private readonly queue: Queue,
-    private readonly azureService: AzureService
+    private readonly azureService: AzureService,
+    private readonly mediaInfoService: MediaInfoService
   ) {}
 
   @Post('images/upload')
@@ -347,15 +349,20 @@ export class MediaController {
 
   @Post('videos/upload-success')
   @MessageRes('Đã bắt đầu xử lý video')
-  async uploadVideoSuccess(@Body('userId') userId: number, @Body('key') key: string) {
+  async uploadVideoSuccess(@ActiveUser('userId') userId: number, @Body('key') key: string) {
     await this.queue
       .add(
         PROBE_DURATION_JOB_NAME,
-        { key, userId },
+        { key, userId, path: key },
         {
           jobId: key,
           removeOnComplete: true,
-          removeOnFail: true
+          removeOnFail: true,
+          attempts: 3,
+          backoff: {
+            type: 'exponential',
+            delay: 1000
+          }
         }
       )
       .catch()

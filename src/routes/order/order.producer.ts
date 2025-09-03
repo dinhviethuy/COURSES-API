@@ -16,7 +16,12 @@ export class OrderProducer {
         delay: 1000 * 60 * 60 * 24, // 24h
         jobId: generateQueueJobId(orderId),
         removeOnComplete: true,
-        removeOnFail: true
+        removeOnFail: true,
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 1000
+        }
       }
     )
   }

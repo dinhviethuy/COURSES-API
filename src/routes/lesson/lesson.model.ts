@@ -1,3 +1,4 @@
+import { LessonType } from 'src/shared/constants/lesson.constant'
 import z from 'zod'
 
 export const LessonSchema = z.object({
@@ -6,6 +7,7 @@ export const LessonSchema = z.object({
   description: z.string().default(''),
   order: z.number().min(0).default(0),
   isDraft: z.boolean().default(true),
+  type: z.enum([LessonType.CONTENT, LessonType.QUIZ]).default(LessonType.CONTENT),
   chapterId: z.number().int().positive(),
   duration: z.number().min(0).default(0),
   videoUrl: z.string().nullable().optional(),
@@ -23,18 +25,27 @@ export const CreateLessonBodySchema = LessonSchema.pick({
   title: true,
   description: true,
   isDraft: true,
+  type: true,
   chapterId: true,
   duration: true,
   videoUrl: true
 })
   .strict()
   .superRefine((data, ctx) => {
-    if (!data.videoUrl) {
+    if (!data.videoUrl && data.type === LessonType.CONTENT) {
       if (!data.description) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: 'Không có video thì phải có mô tả',
           path: ['videoUrl', 'description']
+        })
+      }
+    } else {
+      if (data.type == LessonType.QUIZ && data.videoUrl) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Đây là quiz không phải content',
+          path: ['videoUrl', 'type']
         })
       }
     }

@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common'
+import { Controller, Get, Param, Post } from '@nestjs/common'
 import { ZodSerializerDto } from 'nestjs-zod'
 import { GetLessonDetailResDTO, GetLessonParamsDTO } from 'src/routes/lesson/lesson.dto'
 import { LessonService } from 'src/routes/lesson/lesson.service'
@@ -15,6 +15,16 @@ export class LessonController {
   @ZodSerializerDto(GetLessonDetailResDTO)
   getDetail(@Param() params: GetLessonParamsDTO, @ActiveUser() user: SessionTokenPayload) {
     return this.lessonService.getDetail({
+      lessonId: params.lessonId,
+      userId: user.userId,
+      roleId: user.roleId
+    })
+  }
+
+  @Post(':lessonId/complete')
+  @MessageRes('Hoàn thành bài học thành công')
+  completeLesson(@Param() params: GetLessonParamsDTO, @ActiveUser() user: SessionTokenPayload) {
+    return this.lessonService.completeLesson({
       lessonId: params.lessonId,
       userId: user.userId,
       roleId: user.roleId

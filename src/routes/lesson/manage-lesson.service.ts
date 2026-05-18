@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common'
 import { CreateLessonBodyType, UpdateLessonBodyType } from 'src/routes/lesson/lesson.model'
 import { LessonRepo } from 'src/routes/lesson/lesson.repo'
+import { LessonType } from 'src/shared/constants/lesson.constant'
 import {
   isForeignKeyConstraintPrismaError,
   isNotFoundPrismaError,
@@ -55,7 +56,16 @@ export class ManageLessonService {
     roleId: number
   }) {
     try {
-      const lesson = await this.lessonRepo.update({ data, updatedById, lessonId, roleId })
+      const { duration, ...body } = data
+      const lesson = await this.lessonRepo.update({
+        data: {
+          ...body,
+          duration: body.type === LessonType.QUIZ ? 0 : duration
+        },
+        updatedById,
+        lessonId,
+        roleId
+      })
       return lesson
     } catch (error) {
       if (isForeignKeyConstraintPrismaError(error)) {

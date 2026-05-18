@@ -22,6 +22,86 @@ export class LessonRepo {
     return roleId === adminRoleId
   }
 
+  async hasCompletedAllPreviousLessons({ lessonId, userId }: { lessonId: number; userId: number }) {
+    const currentLesson = await this.prismaService.lesson.findFirst({
+      where: {
+        id: lessonId,
+        deletedAt: null,
+        isDraft: false,
+        chapter: {
+          deletedAt: null,
+          isDraft: false,
+          course: {
+            deletedAt: null,
+            isDraft: false
+          }
+        }
+      },
+      select: {
+        id: true,
+        order: true,
+        chapterId: true,
+        chapter: {
+          select: {
+            order: true,
+            courseId: true
+          }
+        }
+      }
+    })
+
+    if (!currentLesson) return false
+
+    const courseId = currentLesson.chapter.courseId
+
+    const previousLessons = await this.prismaService.lesson.findMany({
+      where: {
+        deletedAt: null,
+        isDraft: false,
+        chapter: {
+          courseId
+        },
+        OR: [
+          {
+            chapter: {
+              order: {
+                lt: currentLesson.chapter.order
+              }
+            }
+          },
+          {
+            chapterId: currentLesson.chapterId,
+            order: {
+              lt: currentLesson.order
+            }
+          }
+        ]
+      },
+      select: {
+        id: true
+      }
+    })
+
+    if (previousLessons.length === 0) return true
+
+    const previousLessonIds = previousLessons.map((l) => l.id)
+
+    const incompleteCount = await this.prismaService.lesson.count({
+      where: {
+        id: {
+          in: previousLessonIds
+        },
+        lessonProgresses: {
+          none: {
+            userId
+          }
+        }
+      }
+    })
+
+    return incompleteCount === 0
+  }
+
   async getDetailClient(lessonId: number): Promise<GetLessonDetailResType | null> {
     const lesson = await this.prismaService.lesson.findFirst({
       where: {
@@ -204,5 +284,37 @@ export class LessonRepo {
         }
       })
     }
+  }
+
+  async completeLesson({ lessonId, userId }: { lessonId: number; userId: number }) {
+    const lesson = await this.prismaService.lesson.findUnique({
+      where: {
+        id: lessonId,
+        deletedAt: null,
+        chapter: {
+          deletedAt: null,
+          course: {
+            deletedAt: null
+          }
+        }
+      }
+    })
+    if (!lesson) {
+      throw new NotFoundException('Bài học không tồn tại')
+    }
+    await this.prismaService.lessonProgress.upsert({
+      where: {
+        userId_lessonId: {
+          userId,
+          lessonId
+        }
+      },
+      create: {
+        userId,
+        lessonId,
+        createdAt: new Date()
+      },
+      update: {}
+    })
   }
 }

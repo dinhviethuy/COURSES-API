@@ -105,7 +105,10 @@ export const GetCourseDetailResSchema = CourseSchema.pick({
           id: true,
           title: true,
           order: true,
-          duration: true
+          duration: true,
+          type: true,
+        }).extend({
+          isCompleted: z.boolean().default(false)
         })
       )
     })
@@ -158,7 +161,8 @@ export const GetCourseDetailResSchemaForAdmin = CourseSchema.pick({
           isDraft: true,
           duration: true,
           videoUrl: true,
-          chapterId: true
+          chapterId: true,
+          type: true,
         })
       )
     })

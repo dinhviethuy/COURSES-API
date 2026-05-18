@@ -32,7 +32,7 @@ export class CourseRepo {
     return roleId === adminRoleId
   }
 
-  private getDetail(where: { id: number } | { slug: string }) {
+  private getDetail(where: { id: number, userId?: number } | { slug: string, userId?: number }) {
     return this.prismaService.course.findFirst({
       where: {
         ...where,
@@ -79,7 +79,13 @@ export class CourseRepo {
                 id: true,
                 title: true,
                 order: true,
-                duration: true
+                duration: true,
+                type: true,
+                lessonProgresses: {
+                  where: {
+                    userId: where.userId
+                  }
+                }
               },
               where: {
                 deletedAt: null,
@@ -112,7 +118,7 @@ export class CourseRepo {
    * API dành cho client
    * Lấy chi tiết khóa học
    */
-  async getCourseDetail(where: { id: number } | { slug: string }): Promise<GetCourseDetailResType | null> {
+  async getCourseDetail(where: { id: number, userId?: number } | { slug: string, userId?: number }): Promise<GetCourseDetailResType | null> {
     const course = await this.getDetail(where)
     if (!course) {
       return null
@@ -121,7 +127,14 @@ export class CourseRepo {
       const duration = chapter.lessons.reduce((acc, lesson) => acc + lesson.duration, 0)
       return {
         ...chapter,
-        duration
+        duration,
+        lessons: chapter.lessons.map((lesson) => {
+          const isCompleted = lesson.lessonProgresses.length > 0
+          return {
+            ...lesson,
+            isCompleted
+          }
+        })
       }
     })
     const totalDuration = chaptersWithDuration.reduce((acc, chapter) => acc + chapter.duration, 0)
@@ -418,6 +431,22 @@ export class CourseRepo {
               where: {
                 deletedAt: null
               },
+              select: {
+                  id: true,
+                  title: true,
+                  duration: true,
+                  type: true,
+                  order: true,
+                  key: true,
+                  description: true,
+                  chapterId: true,
+                  isDraft: true,
+                  lessonProgresses: {
+                    where: {
+                      userId
+                    }
+                  }
+              },
               orderBy: {
                 order: OrderBy.Asc
               }
@@ -442,7 +471,14 @@ export class CourseRepo {
       const duration = chapter.lessons.reduce((acc, lesson) => acc + lesson.duration, 0)
       return {
         ...chapter,
-        duration
+        duration,
+        lessons: chapter.lessons.map((lesson) => {
+          const isCompleted = lesson.lessonProgresses.length > 0
+          return {
+            ...lesson,
+            isCompleted
+          }
+        })
       }
     })
     const totalDuration = chaptersWithDuration.reduce((acc, chapter) => acc + chapter.duration, 0)

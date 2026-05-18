@@ -61,7 +61,7 @@ export class AuthService {
         password,
         fullName
       })
-    } catch (error) {
+    } catch (error: any) {
       if (isUniqueConstraintPrismaError(error)) {
         throw new ConflictException('Email đã tồn tại')
       }

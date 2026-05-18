@@ -1,7 +1,7 @@
-// MediaInfoService (ý tưởng)
 import { BlobSASPermissions, generateBlobSASQueryParameters, StorageSharedKeyCredential } from '@azure/storage-blob'
 import { Injectable } from '@nestjs/common'
 import ffmpeg from 'fluent-ffmpeg'
+import path from 'path'
 import { envConfig } from 'src/shared/config'
 import { AzureService } from 'src/shared/services/azure.services'
 
@@ -14,17 +14,26 @@ export class MediaInfoService {
     const expiresOn = new Date(Date.now() + minutes * 60 * 1000)
     const sas = generateBlobSASQueryParameters(
       {
-        containerName: envConfig.AZURE_STORAGE_CONTAINER,
+        containerName: envConfig.AZURE_STORAGE_CONTAINER!,
         blobName,
         permissions: BlobSASPermissions.parse('r'),
         expiresOn
       },
-      new StorageSharedKeyCredential(envConfig.AZURE_STORAGE_ACCOUNT_NAME, envConfig.AZURE_STORAGE_ACCOUNT_KEY)
+      new StorageSharedKeyCredential(envConfig.AZURE_STORAGE_ACCOUNT_NAME!, envConfig.AZURE_STORAGE_ACCOUNT_KEY!)
     ).toString()
     return `${blobClient.url}?${sas}`
   }
 
   async getInfo(blobName: string): Promise<number> {
+    if (envConfig.UPLOAD_PROVIDER !== 'azure') {
+      const localPath = path.resolve(process.cwd(), 'uploads', 'videos', blobName)
+      return new Promise<number>((resolve, reject) => {
+        ffmpeg(localPath).ffprobe((err, data) => {
+          if (err) return reject(new Error(err.message))
+          resolve(Number(data?.format?.duration ?? 0))
+        })
+      })
+    }
     const url = this.buildSasUrl(blobName)
     console.log('url', url)
     return new Promise<number>((resolve, reject) => {

@@ -31,10 +31,11 @@ const configSchema = z.object({
   NODE_ENV: z.enum(['development', 'production']).default('development'),
   TELEGRAM_TOKEN_BOT: z.string(),
   TELEGRAM_YOUR_ID: z.string(),
-  AZURE_STORAGE_CONNECTION_STRING: z.string(),
-  AZURE_STORAGE_CONTAINER: z.string(),
-  AZURE_STORAGE_ACCOUNT_NAME: z.string(),
-  AZURE_STORAGE_ACCOUNT_KEY: z.string()
+  UPLOAD_PROVIDER: z.enum(['local', 'azure']).default('local'),
+  AZURE_STORAGE_CONNECTION_STRING: z.string().optional(),
+  AZURE_STORAGE_CONTAINER: z.string().optional(),
+  AZURE_STORAGE_ACCOUNT_NAME: z.string().optional(),
+  AZURE_STORAGE_ACCOUNT_KEY: z.string().optional()
 })
 
 const configServer = configSchema.safeParse(process.env)

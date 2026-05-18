@@ -119,7 +119,7 @@ export class MediaController {
       const key = filename.split('.')[0]
       const url = this.azureService.generateWriteSasUrl(filename)
       return { url, key, type: 'video', duration: 0 }
-    } catch (error) {
+    } catch (error: any) {
       throw new BadRequestException(error.message)
     }
   }
@@ -337,7 +337,7 @@ export class MediaController {
         Expires: '0'
       })
       dl.readableStreamBody!.pipe(res)
-    } catch (error) {
+    } catch (error: any) {
       console.error('error', error)
       return res.json({
         message: 'Lỗi',

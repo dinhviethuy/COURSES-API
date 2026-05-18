@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client'
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 import { randomInt } from 'crypto'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
@@ -8,24 +9,24 @@ import { v4 as uuidv4 } from 'uuid'
 
 const execFileAsync = promisify(execFile)
 
-export function isUniqueConstraintPrismaError(error: any): error is Prisma.PrismaClientKnownRequestError {
-  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002'
+export function isUniqueConstraintPrismaError(error: any): error is PrismaClientKnownRequestError {
+  return error instanceof PrismaClientKnownRequestError && error.code === 'P2002'
 }
 
-export function isNotFoundPrismaError(error: any): error is Prisma.PrismaClientKnownRequestError {
-  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025'
+export function isNotFoundPrismaError(error: any): error is PrismaClientKnownRequestError {
+  return error instanceof PrismaClientKnownRequestError && error.code === 'P2025'
 }
 
 export const generateOTP = () => {
   return String(randomInt(0, 999999)).padStart(6, '0')
 }
 
-export function isForeignKeyConstraintPrismaError(error: any): error is Prisma.PrismaClientKnownRequestError {
-  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003'
+export function isForeignKeyConstraintPrismaError(error: any): error is PrismaClientKnownRequestError {
+  return error instanceof PrismaClientKnownRequestError && error.code === 'P2003'
 }
 
-export function isRequiredConnectPrismaError(error: any): error is Prisma.PrismaClientKnownRequestError {
-  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2018'
+export function isRequiredConnectPrismaError(error: any): error is PrismaClientKnownRequestError {
+  return error instanceof PrismaClientKnownRequestError && error.code === 'P2018'
 }
 
 export const generateRandomFilename = (fileName: string) => {

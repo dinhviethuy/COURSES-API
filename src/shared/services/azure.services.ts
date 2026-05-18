@@ -13,16 +13,17 @@ import * as streamifier from 'streamifier'
 @Injectable()
 export class AzureService {
   private readonly logger = new Logger(AzureService.name)
-  private containerClient: ContainerClient
-  private readonly storageSharedKeyCredential: StorageSharedKeyCredential
+  private containerClient!: ContainerClient
+  private readonly storageSharedKeyCredential!: StorageSharedKeyCredential
 
   constructor() {
+    if (envConfig.UPLOAD_PROVIDER !== 'azure') return
     const containerName = envConfig.AZURE_STORAGE_CONTAINER || 'videos'
-    const blobServiceClient = BlobServiceClient.fromConnectionString(envConfig.AZURE_STORAGE_CONNECTION_STRING)
+    const blobServiceClient = BlobServiceClient.fromConnectionString(envConfig.AZURE_STORAGE_CONNECTION_STRING!)
     this.containerClient = blobServiceClient.getContainerClient(containerName)
     this.storageSharedKeyCredential = new StorageSharedKeyCredential(
-      envConfig.AZURE_STORAGE_ACCOUNT_NAME,
-      envConfig.AZURE_STORAGE_ACCOUNT_KEY
+      envConfig.AZURE_STORAGE_ACCOUNT_NAME!,
+      envConfig.AZURE_STORAGE_ACCOUNT_KEY!
     )
   }
 

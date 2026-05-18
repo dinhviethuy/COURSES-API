@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
+import ms from 'ms'
 import { envConfig } from 'src/shared/config'
 import { SessionTokenPayload, SessionTokenPayloadCreate } from 'src/shared/types/jwt.type'
 import { v4 as uuidv4 } from 'uuid'
@@ -16,7 +17,7 @@ export class TokenService {
       },
       {
         secret: envConfig.SESSION_TOKEN_SECRET,
-        expiresIn: envConfig.SESSION_TOKEN_EXPIRES_IN
+        expiresIn: envConfig.SESSION_TOKEN_EXPIRES_IN as ms.StringValue
       }
     )
   }
